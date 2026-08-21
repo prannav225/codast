@@ -40,7 +40,6 @@ export class FileFilter {
     const normalized = relativePath.replace(/\\/g, "/").replace(/^\/+/, "");
     if (!normalized) return false;
 
-    // Direct check for secret/env files
     if (this.isSecretFile(normalized)) {
       return true;
     }
@@ -73,7 +72,7 @@ export class FileFilter {
   }
 
   /**
-   * Validates whether a file has a supported JavaScript / TypeScript extension.
+   * Validates whether a file has a supported code, query, or config extension.
    */
   isSupportedFile(filePath: string): boolean {
     const lower = filePath.toLowerCase().replace(/\\/g, "/");
@@ -89,7 +88,7 @@ export class FileFilter {
     }
 
     // Skip minified or bundle files
-    if (lower.endsWith(".min.js") || lower.endsWith(".bundle.js")) {
+    if (lower.endsWith(".min.js") || lower.endsWith(".bundle.js") || lower.endsWith(".min.css")) {
       return false;
     }
 
@@ -104,7 +103,7 @@ export class FileFilter {
       return false;
     }
 
-    // Skip Vite / Webpack chunk bundles (e.g. AccountDashboardLayout-Bgm1Z146.js)
+    // Skip Vite / Webpack chunk bundles
     const filename = path.basename(filePath);
     if (/[-.][a-zA-Z0-9_]{6,}\.(js|jsx)$/.test(filename) && (lower.includes("asset") || lower.includes("public"))) {
       return false;
@@ -138,7 +137,16 @@ export class FileFilter {
       "android",
       "ios",
       "platforms",
-      "www"
+      "www",
+      "__pycache__",
+      ".pytest_cache",
+      ".venv",
+      "venv",
+      "env",
+      "target",
+      "vendor",
+      ".gradle",
+      ".m2"
     ]);
 
     return prunedDirs.has(dirName);

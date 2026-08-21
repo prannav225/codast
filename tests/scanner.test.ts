@@ -13,15 +13,18 @@ async function runTests() {
     // 1. Create simulated directory structure
     fs.mkdirSync(path.join(tempDir, "src/components"), { recursive: true });
     fs.mkdirSync(path.join(tempDir, "src/utils"), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, "pkg/auth"), { recursive: true });
     fs.mkdirSync(path.join(tempDir, "node_modules/pkg"), { recursive: true });
     fs.mkdirSync(path.join(tempDir, "dist"), { recursive: true });
     fs.mkdirSync(path.join(tempDir, ".codebase-ai"), { recursive: true });
 
-    // Valid files
+    // Valid multi-language files
     fs.writeFileSync(path.join(tempDir, "src/index.ts"), "export const hello = 'world';\nconsole.log(hello);\n");
     fs.writeFileSync(path.join(tempDir, "src/components/Button.tsx"), "import React from 'react';\nexport const Button = () => <button>Click</button>;\n");
     fs.writeFileSync(path.join(tempDir, "src/utils/math.js"), "export function add(a, b) {\n  return a + b;\n}\n");
     fs.writeFileSync(path.join(tempDir, "src/utils/view.jsx"), "export function View() {\n  return <div>View</div>;\n}\n");
+    fs.writeFileSync(path.join(tempDir, "src/utils/helper.py"), "def help():\n    pass\n");
+    fs.writeFileSync(path.join(tempDir, "pkg/auth/service.go"), "package auth\n");
 
     // Ignored/Excluded files
     fs.writeFileSync(path.join(tempDir, "node_modules/pkg/index.js"), "module.exports = {};");
@@ -29,7 +32,6 @@ async function runTests() {
     fs.writeFileSync(path.join(tempDir, ".env"), "SECRET_KEY=12345");
     fs.writeFileSync(path.join(tempDir, ".env.local"), "LOCAL_SECRET=abc");
     fs.writeFileSync(path.join(tempDir, "src/utils/test.min.js"), "var min=1;");
-    fs.writeFileSync(path.join(tempDir, "README.md"), "# Readme");
     fs.writeFileSync(path.join(tempDir, ".gitignore"), "ignored-dir/\ncustom-ignored.ts\n");
 
     // Custom gitignored files
@@ -45,8 +47,10 @@ async function runTests() {
 
     // 3. Assertions
     const expectedFiles = [
+      "pkg/auth/service.go",
       "src/components/Button.tsx",
       "src/index.ts",
+      "src/utils/helper.py",
       "src/utils/math.js",
       "src/utils/view.jsx"
     ];
@@ -78,7 +82,6 @@ async function runTests() {
       ".env",
       ".env.local",
       "src/utils/test.min.js",
-      "README.md",
       "ignored-dir/file.ts",
       "src/custom-ignored.ts"
     ];

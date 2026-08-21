@@ -1,18 +1,31 @@
 import fs from "node:fs";
 import path from "node:path";
-import { Project, ScriptTarget, ts, type SourceFile } from "ts-morph";
+import { Project, ScriptTarget, ts } from "ts-morph";
 import { SymbolExtractor } from "./symbol-extractor.js";
 import { ImportExportExtractor } from "./import-extractor.js";
 import { RelationshipResolver } from "./relationship-resolver.js";
+import { PythonParser } from "./parsers/python-parser.js";
+import { GoParser } from "./parsers/go-parser.js";
+import { RustParser } from "./parsers/rust-parser.js";
+import { PolyglotParser } from "./parsers/polyglot-parser.js";
 import { type FileAnalysisResult } from "./types.js";
 import { Logger } from "../../utils/logger.js";
 
 export class AstParser {
   private readonly project: Project;
   private readonly projectRoot: string;
+  private readonly pythonParser: PythonParser;
+  private readonly goParser: GoParser;
+  private readonly rustParser: RustParser;
+  private readonly polyglotParser: PolyglotParser;
 
   constructor(projectRoot: string) {
     this.projectRoot = path.resolve(projectRoot);
+    this.pythonParser = new PythonParser();
+    this.goParser = new GoParser();
+    this.rustParser = new RustParser();
+    this.polyglotParser = new PolyglotParser();
+
     this.project = new Project({
       compilerOptions: {
         allowJs: true,
@@ -27,7 +40,8 @@ export class AstParser {
   }
 
   /**
-   * Parses a single file by relative path and extracts symbols, imports, exports, and relationships.
+   * Parses any supported source file (JS/TS, Python, Go, Rust, Java, C++, SQL, Markdown, Config)
+   * and extracts structured symbols, imports, exports, and relationships.
    */
   parseSourceFile(relativePath: string, fileContent?: string): FileAnalysisResult {
     const fullPath = path.isAbsolute(relativePath)
@@ -35,9 +49,45 @@ export class AstParser {
       : path.join(this.projectRoot, relativePath);
 
     const content = fileContent !== undefined ? fileContent : fs.readFileSync(fullPath, "utf8");
+    const ext = path.extname(relativePath).toLowerCase();
 
+    // 1. Python Parser
+    if (ext === ".py" || ext === ".pyi") {
+      const res = this.pythonParser.parse(relativePath, content);
+      return { filePath: relativePath, ...res };
+    }
+
+    // 2. Go Parser
+    if (ext === ".go") {
+      const res = this.goParser.parse(relativePath, content);
+      return { filePath: relativePath, ...res };
+    }
+
+    // 3. Rust Parser
+    if (ext === ".rs") {
+      const res = this.rustParser.parse(relativePath, content);
+      return { filePath: relativePath, ...res };
+    }
+
+    // 4. JavaScript & TypeScript AST Parser (ts-morph)
+    if (
+      ext === ".ts" ||
+      ext === ".tsx" ||
+      ext === ".js" ||
+      ext === ".jsx" ||
+      ext === ".mjs" ||
+      ext === ".cjs"
+    ) {
+      return this.parseTypeScriptSource(relativePath, fullPath, content);
+    }
+
+    // 5. Universal Polyglot Parser (Java, Kotlin, C/C++, C#, PHP, Ruby, SQL, MD, Configs)
+    const polyglotRes = this.polyglotParser.parse(relativePath, content);
+    return { filePath: relativePath, ...polyglotRes };
+  }
+
+  private parseTypeScriptSource(relativePath: string, fullPath: string, content: string): FileAnalysisResult {
     try {
-      // Create or update in-memory source file to avoid file lock issues and conserve memory
       let sourceFile = this.project.getSourceFile(fullPath);
       if (sourceFile) {
         sourceFile.replaceWithText(content);
@@ -56,7 +106,6 @@ export class AstParser {
         exports
       );
 
-      // Free source file from project memory
       this.project.removeSourceFile(sourceFile);
 
       return {

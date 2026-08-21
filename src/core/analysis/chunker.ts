@@ -1,3 +1,4 @@
+import path from "node:path";
 import { computeHash } from "../../utils/hash.js";
 import { type ExtractedSymbol } from "./types.js";
 
@@ -48,18 +49,13 @@ export class LogicalChunker {
     const chunks: LogicalChunk[] = [];
     const coveredIntervals: Array<{ start: number; end: number }> = [];
 
-    // Filter top-level symbols and major methods (avoiding duplicate sub-symbol chunking if parent is already small)
-    // If a class is small (< maxLines), chunk the whole class; if large, chunk its methods individually.
     const sortedSymbols = [...symbols].sort((a, b) => a.startLine - b.startLine);
 
     for (const sym of sortedSymbols) {
-      // If symbol is a method and its parent class was already chunked as a whole, we still keep method chunk
-      // for fine-grained retrieval, or we chunk methods directly.
       const symLinesCount = sym.endLine - sym.startLine + 1;
       const rawSlice = fileLines.slice(sym.startLine - 1, sym.endLine).join("\n");
 
       if (symLinesCount <= maxLines) {
-        // Single AST chunk
         const chunkId = `${filePath}#${sym.name}:${sym.startLine}-${sym.endLine}`;
         const enriched = this.enrichChunk(filePath, sym.name, sym.kind, sym.startLine, sym.endLine, rawSlice, sym.signature, sym.docComment);
 
@@ -121,7 +117,7 @@ export class LogicalChunker {
       }
     }
 
-    // Capture uncovered module-level gaps (e.g. imports, global constants, bootstrap statements)
+    // Capture uncovered module-level gaps
     const mergedIntervals = this.mergeIntervals(coveredIntervals);
     let lastCoveredLine = 0;
 
@@ -141,9 +137,7 @@ export class LogicalChunker {
       this.addModuleChunkIfMeaningful(filePath, fileLines, gapStart, gapEnd, minModuleLines, chunks);
     }
 
-    // Sort chunks deterministically by start line
     chunks.sort((a, b) => a.startLine - b.startLine);
-
     return chunks;
   }
 
@@ -161,8 +155,7 @@ export class LogicalChunker {
     if (trimmed.length === 0) return;
     const lineCount = endLine - startLine + 1;
 
-    // Skip trivial 1-2 line gaps unless containing significant code
-    if (lineCount < minLines && !trimmed.includes("import") && !trimmed.includes("export") && !trimmed.includes("const")) {
+    if (lineCount < minLines && !trimmed.includes("import") && !trimmed.includes("export") && !trimmed.includes("const") && !trimmed.includes("def")) {
       return;
     }
 
@@ -192,19 +185,32 @@ export class LogicalChunker {
     signature?: string,
     docComment?: string
   ): string {
+    const ext = path.extname(filePath).toLowerCase();
+    const commentPrefix = this.getCommentPrefix(ext);
+
     const parts: string[] = [];
-    parts.push(`// File: ${filePath}`);
-    parts.push(`// Symbol: ${name} (${type}) | Lines: ${startLine}-${endLine}`);
+    parts.push(`${commentPrefix} File: ${filePath}`);
+    parts.push(`${commentPrefix} Symbol: ${name} (${type}) | Lines: ${startLine}-${endLine}`);
     if (signature) {
-      parts.push(`// Signature: ${signature}`);
+      parts.push(`${commentPrefix} Signature: ${signature}`);
     }
     if (docComment) {
-      parts.push(`// Documentation:\n${docComment}`);
+      parts.push(`${commentPrefix} Documentation:\n${docComment}`);
     }
     parts.push("");
     parts.push(content);
 
     return parts.join("\n");
+  }
+
+  private static getCommentPrefix(ext: string): string {
+    if (ext === ".py" || ext === ".pyi" || ext === ".rb" || ext === ".yaml" || ext === ".yml" || ext === ".sh") {
+      return "#";
+    }
+    if (ext === ".sql") {
+      return "--";
+    }
+    return "//";
   }
 
   private static mergeIntervals(intervals: Array<{ start: number; end: number }>): Array<{ start: number; end: number }> {

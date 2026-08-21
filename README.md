@@ -8,9 +8,17 @@
 ## Features
 
 - **Interactive Terminal REPL (`codast` / `cai`)**: Launch into an interactive chat environment with continuous multi-turn dialogue, slash commands (`/index`, `/status`, `/files`), and syntax-highlighted markdown.
-- **AST Intelligence (`ts-morph`)**: Extracts classes, methods, functions, React components, hooks, interfaces, and type aliases.
-- **Relationship Graphs**: Traces `IMPORTS`, `EXPORTS`, `DEFINES`, `CALLS`, and `USES` relationships stored in local SQLite.
-- **Logical Code Chunking**: Enriches code chunks with file paths, symbol metadata, signatures, and docstrings.
+- **Universal Multi-Language Support**:
+  - **JavaScript & TypeScript** (`.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`) — Full AST via `ts-morph`
+  - **Python** (`.py`, `.pyi`) — Classes, methods, async defs, decorators, docstrings, imports
+  - **Go** (`.go`) — Structs, interfaces, pointer receivers, packages, imports
+  - **Rust** (`.rs`) — Structs, enums, traits, `impl` blocks, `pub fn`, `use` statements
+  - **Java & Kotlin** (`.java`, `.kt`) — Classes, interfaces, methods, annotations
+  - **C / C++ / C#** (`.c`, `.cpp`, `.h`, `.hpp`, `.cs`) — Functions, classes, structs, namespaces, `#include`
+  - **PHP & Ruby** (`.php`, `.rb`) — Classes, methods, modules, functions
+  - **Data & Config** (`.sql`, `.json`, `.yaml`, `.md`, `.html`, `.css`) — Tables, views, structured blocks
+- **Relationship Graphs**: Traces `IMPORTS`, `EXPORTS`, `DEFINES`, `CALLS`, and `USES` relationships across all languages.
+- **Logical Code Chunking**: Enriches code chunks with language-native comments (`#`, `//`, `--`), symbol metadata, signatures, and docstrings.
 - **Multi-Provider Support**: High-throughput code embeddings with **Voyage AI** (`voyage-code-2`) or **Google Gemini** (`gemini-embedding-001`), paired with **Gemini 3.1 Flash Lite** for grounded reasoning.
 - **Exact Source Citations**: Every answer includes clickable file and line-range evidence (e.g. `src/auth.ts:12-45`).
 - **Incremental Caching**: SHA-256 content hashing skips unchanged files (re-indexes in 0.02s).
