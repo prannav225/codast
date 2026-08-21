@@ -1,23 +1,23 @@
-# ⚡ Codast (`codast` / `cai`)
+# Codast (`codast` / `cai`)
 
 > **Local-first AI-powered developer CLI for JavaScript and TypeScript codebases.**  
 > Deep AST analysis, dependency graph resolution, local vector retrieval, and grounded reasoning with exact line citations.
 
 ---
 
-## ✨ Features
+## Features
 
-- **⚡ Interactive Terminal REPL (`codast` / `cai`)**: Launch straight into an interactive chat environment with continuous multi-turn dialogue, slash commands (`/index`, `/status`, `/files`), and rich syntax-highlighted markdown.
-- **🌳 AST Intelligence (`ts-morph`)**: Extracts classes, methods, functions, React components, hooks, interfaces, and type aliases.
-- **🕸 Relationship Graphs**: Traces `IMPORTS`, `EXPORTS`, `DEFINES`, `CALLS`, and `USES` relationships stored in local SQLite.
-- **🧩 Logical Code Chunking**: Enriches code chunks with file paths, symbol metadata, signatures, and docstrings.
-- **🎯 Multi-Provider Support**: High-throughput code embeddings with **Voyage AI** (`voyage-code-2`) or **Google Gemini** (`gemini-embedding-001`), paired with **Gemini 3.1 Flash Lite** for grounded reasoning.
-- **📄 Exact Source Citations**: Every answer includes clickable file and line-range evidence (e.g. `src/auth.ts:12-45`).
-- **⚡ Incremental Caching**: SHA-256 content hashing skips unchanged files (re-indexes in 0.02s).
+- **Interactive Terminal REPL (`codast` / `cai`)**: Launch into an interactive chat environment with continuous multi-turn dialogue, slash commands (`/index`, `/status`, `/files`), and syntax-highlighted markdown.
+- **AST Intelligence (`ts-morph`)**: Extracts classes, methods, functions, React components, hooks, interfaces, and type aliases.
+- **Relationship Graphs**: Traces `IMPORTS`, `EXPORTS`, `DEFINES`, `CALLS`, and `USES` relationships stored in local SQLite.
+- **Logical Code Chunking**: Enriches code chunks with file paths, symbol metadata, signatures, and docstrings.
+- **Multi-Provider Support**: High-throughput code embeddings with **Voyage AI** (`voyage-code-2`) or **Google Gemini** (`gemini-embedding-001`), paired with **Gemini 3.1 Flash Lite** for grounded reasoning.
+- **Exact Source Citations**: Every answer includes clickable file and line-range evidence (e.g. `src/auth.ts:12-45`).
+- **Incremental Caching**: SHA-256 content hashing skips unchanged files (re-indexes in 0.02s).
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Installation
 
@@ -48,7 +48,7 @@ codast config set voyage-key <YOUR_VOYAGE_KEY>
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### Interactive Chat Session
 
@@ -99,7 +99,7 @@ codast ask "How does user authentication work?"
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```text
 Source Files (JS/TS)
@@ -117,7 +117,7 @@ User Query ──> Hybrid Retrieval (Symbols + Graphs + Vectors) ──> Gemini 
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the automated test suite across all subsystems:
 
@@ -135,6 +135,6 @@ Includes unit & integration tests for:
 
 ---
 
-## 📄 License
+## License
 
 MIT © Pranav
