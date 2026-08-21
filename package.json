@@ -1,7 +1,7 @@
 {
   "name": "codast",
   "version": "0.1.0",
-  "description": "⚡ AI-Powered Local Codebase Intelligence & Interactive Assistant",
+  "description": "Local-first AI-powered developer CLI for JavaScript and TypeScript codebases",
   "type": "module",
   "bin": {
     "codast": "./bin/codebase-ai.js",
@@ -10,10 +10,24 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prannav225/codast.git"
+  },
+  "homepage": "https://github.com/prannav225/codast#readme",
+  "bugs": {
+    "url": "https://github.com/prannav225/codast/issues"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/cli/index.ts",
     "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test",
     "test:scanner": "tsx tests/scanner.test.ts",
     "test:ast": "tsx tests/ast-parser.test.ts",
     "test:sqlite": "tsx tests/sqlite.test.ts",
@@ -36,7 +50,7 @@
     "voyageai",
     "gemini"
   ],
-  "author": "",
+  "author": "Pranav",
   "license": "MIT",
   "dependencies": {
     "@google/genai": "^2.18.0",
