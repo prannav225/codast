@@ -4,8 +4,8 @@
   "description": "Local-first AI-powered developer CLI for JavaScript, TypeScript, Python, Go, Rust, Java, and Polyglot codebases",
   "type": "module",
   "bin": {
-    "codast": "./bin/codast.js",
-    "cai": "./bin/codast.js"
+    "codast": "bin/codast.js",
+    "cai": "bin/codast.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
