@@ -25,8 +25,8 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 # 3. Install globally via npm
-echo "  • Installing codast globally..."
-npm install -g codast
+echo "  • Installing @pra9v/codast globally..."
+npm install -g @pra9v/codast
 
 echo ""
 echo "  ✔ Codast installed successfully!"

@@ -22,16 +22,11 @@
 ### 1. Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/prannav225/codast.git
-cd codast
+# Global install via npm
+npm install -g @pra9v/codast
 
-# Install dependencies & build
-npm install
-npm run build
-
-# Link globally to your terminal
-npm link
+# Or run instantly with npx (zero install required)
+npx @pra9v/codast
 ```
 
 ### 2. Configure API Keys

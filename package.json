@@ -1,17 +1,17 @@
 {
-  "name": "codast",
+  "name": "@pra9v/codast",
   "version": "0.1.0",
   "description": "Local-first AI-powered developer CLI for JavaScript and TypeScript codebases",
   "type": "module",
   "bin": {
-    "codast": "./dist/cli/index.js",
-    "cai": "./dist/cli/index.js",
-    "codebase-ai": "./dist/cli/index.js"
+    "codast": "./bin/codast.js",
+    "cai": "./bin/codast.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "bin",
     "README.md"
   ],
   "repository": {
