@@ -32,6 +32,16 @@ jobs:
       - name: Build Production Assets
         run: npm run build
 
+      - name: Check NPM Token Secret
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "::error ::The NPM_TOKEN repository secret is not set or empty in GitHub Secrets!"
+            exit 1
+          fi
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish to NPM
         run: npm publish --access public
         env:
