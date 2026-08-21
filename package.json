@@ -1,6 +1,6 @@
 {
   "name": "@pra9v/codast",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first AI-powered developer CLI for JavaScript, TypeScript, Python, Go, Rust, Java, and Polyglot codebases",
   "type": "module",
   "bin": {
