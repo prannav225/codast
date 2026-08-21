@@ -1,0 +1,60 @@
+{
+  "name": "codast",
+  "version": "0.1.0",
+  "description": "⚡ AI-Powered Local Codebase Intelligence & Interactive Assistant",
+  "type": "module",
+  "bin": {
+    "codast": "./bin/codebase-ai.js",
+    "cai": "./bin/codebase-ai.js",
+    "codebase-ai": "./bin/codebase-ai.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/cli/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test:scanner": "tsx tests/scanner.test.ts",
+    "test:ast": "tsx tests/ast-parser.test.ts",
+    "test:sqlite": "tsx tests/sqlite.test.ts",
+    "test:chunker": "tsx tests/chunker.test.ts",
+    "test:vector": "tsx tests/vector.test.ts",
+    "test:retrieval": "tsx tests/retrieval.test.ts",
+    "test": "npm run test:scanner && npm run test:ast && npm run test:sqlite && npm run test:chunker && npm run test:vector && npm run test:retrieval",
+    "start": "node dist/cli/index.js"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "codast",
+    "codebase",
+    "interactive",
+    "repl",
+    "ast",
+    "lancedb",
+    "sqlite",
+    "voyageai",
+    "gemini"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^2.18.0",
+    "@lancedb/lancedb": "^0.37.1",
+    "better-sqlite3": "^11.8.1",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.2",
+    "ignore": "^5.3.2",
+    "ora": "^8.0.1",
+    "ts-morph": "^24.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.5.0",
+    "tsup": "^8.2.4",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}
