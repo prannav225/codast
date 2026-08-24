@@ -264,6 +264,12 @@ export class IndexingPipeline {
     };
 
     const fileId = repoManager.saveFile(repo.id, scannedFile);
+
+    // Clear previous symbols, relationships, and chunks for this file
+    db.prepare("DELETE FROM chunks WHERE file_id = ?").run(fileId);
+    db.prepare("DELETE FROM symbols WHERE file_id = ?").run(fileId);
+    db.prepare("DELETE FROM relationships WHERE source_file_id = ?").run(fileId);
+
     const parser = new AstParser(this.projectRoot);
     const analysis = parser.parseSourceFile(rel, content);
 
@@ -334,7 +340,7 @@ export class IndexingPipeline {
 
     if (file) {
       db.prepare(`DELETE FROM chunks WHERE file_id = ?`).run(file.id);
-      db.prepare(`DELETE FROM relationships WHERE file_id = ?`).run(file.id);
+      db.prepare(`DELETE FROM relationships WHERE source_file_id = ?`).run(file.id);
       db.prepare(`DELETE FROM symbols WHERE file_id = ?`).run(file.id);
       db.prepare(`DELETE FROM files WHERE id = ?`).run(file.id);
     }

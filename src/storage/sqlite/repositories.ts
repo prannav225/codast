@@ -121,7 +121,7 @@ export class SqliteRepositoryManager {
         updated_at = excluded.updated_at
     `);
 
-    const res = stmt.run(
+    stmt.run(
       repoId,
       file.relativePath,
       file.extension,
@@ -129,10 +129,6 @@ export class SqliteRepositoryManager {
       file.lineCount,
       now
     );
-
-    if (res.changes > 0 && res.lastInsertRowid) {
-      return Number(res.lastInsertRowid);
-    }
 
     const existing = this.db.prepare<[number, string], { id: number }>(
       "SELECT id FROM files WHERE repository_id = ? AND path = ?"

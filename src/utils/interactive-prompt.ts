@@ -19,7 +19,7 @@ export class InteractivePrompt {
   }
 
   /**
-   * Prompts the user with a smooth, in-place inline suggestion popup when typing `@` or `/`.
+   * Prompts the user with a rock-solid, zero-scroll inline suggestion popup when typing `@` or `/`.
    */
   async ask(promptPrefix: string = "> "): Promise<string> {
     return new Promise((resolve) => {
@@ -78,16 +78,18 @@ export class InteractivePrompt {
       };
 
       const render = () => {
-        // 1. Move cursor back up to the prompt line from any previously rendered popup lines
+        const promptPlainLen = promptPrefix.replace(/\u001b\[[0-9;]*m/g, "").length;
+
+        // 1. Move back up to prompt line from previous popup render
         if (renderedLineCount > 0) {
           readline.moveCursor(process.stdout, 0, -renderedLineCount);
         }
         readline.cursorTo(process.stdout, 0);
-        readline.clearScreenDown(process.stdout);
+        readline.clearLine(process.stdout, 0);
+        process.stdout.write(`${promptPrefix}${buffer}`);
 
-        // 2. Build output lines
-        const promptLine = `${promptPrefix}${buffer}`;
-        const outputLines: string[] = [promptLine];
+        // 2. Build popup lines if suggestions active
+        const popupLines: string[] = [];
 
         if (isSuggesting && suggestions.length > 0) {
           const rule = chalk.hex("#3B4261");
@@ -96,54 +98,68 @@ export class InteractivePrompt {
           const blue = chalk.hex("#82AAFF");
           const white = chalk.hex("#EEFFFF");
 
-          outputLines.push(`  ${rule("─────────────────────────────────────────────────────────────────────────────")}`);
+          popupLines.push(`  ${rule("─────────────────────────────────────────────────────────────────────────────")}`);
 
           const total = suggestions.length;
           const visible = suggestions.slice(scrollOffset, scrollOffset + visibleCount);
 
           if (scrollOffset > 0) {
-            outputLines.push(`  ${dim(`↑ ${scrollOffset} more`)}`);
+            popupLines.push(`  ${dim(`↑ ${scrollOffset} more`)}`);
           } else {
-            outputLines.push("");
+            popupLines.push("");
           }
 
           visible.forEach((item, idx) => {
             const actualIdx = scrollOffset + idx;
             const isSelected = actualIdx === selectedIndex;
 
-            const nameCol = item.name.padEnd(26, " ");
-            const typeCol = item.type.padEnd(12, " ");
-            const detailCol = item.detail.slice(0, 48);
+            const nameCol = item.name.padEnd(24, " ");
+            const typeCol = item.type.padEnd(10, " ");
+            const detailCol = item.detail.slice(0, 46);
 
             if (isSelected) {
-              outputLines.push(`  ${cyan(">")} ${blue.bold(nameCol)} ${white(typeCol)} ${dim(detailCol)}`);
+              popupLines.push(`  ${cyan(">")} ${blue.bold(nameCol)} ${white(typeCol)} ${dim(detailCol)}`);
             } else {
-              outputLines.push(`    ${white(nameCol)} ${dim(typeCol)} ${dim(detailCol)}`);
+              popupLines.push(`    ${white(nameCol)} ${dim(typeCol)} ${dim(detailCol)}`);
             }
           });
 
           const remainingBelow = total - (scrollOffset + visible.length);
           if (remainingBelow > 0) {
-            outputLines.push(`  ${dim(`↓ ${remainingBelow} more`)}`);
+            popupLines.push(`  ${dim(`↓ ${remainingBelow} more`)}`);
           } else {
-            outputLines.push("");
+            popupLines.push("");
           }
 
-          outputLines.push(`  ${cyan("↑/↓")} ${dim("Navigate")} ${dim("•")} ${cyan("enter")} ${dim("Select")} ${dim("•")} ${cyan("tab")} ${dim("Complete")}`);
+          popupLines.push(`  ${cyan("↑/↓")} ${dim("Navigate")} ${dim("•")} ${cyan("enter")} ${dim("Select")} ${dim("•")} ${cyan("tab")} ${dim("Complete")}`);
         }
 
-        // 3. Write all lines smoothly
-        process.stdout.write(outputLines.join("\n"));
-
-        // 4. Update rendered line count
-        renderedLineCount = outputLines.length - 1;
-
-        // 5. Move cursor back to the prompt line at the correct horizontal position
-        if (renderedLineCount > 0) {
-          readline.moveCursor(process.stdout, 0, -renderedLineCount);
+        // 3. Render popup lines below prompt line without triggering scrolling
+        for (let i = 0; i < popupLines.length; i++) {
+          readline.moveCursor(process.stdout, 0, 1);
+          readline.cursorTo(process.stdout, 0);
+          readline.clearLine(process.stdout, 0);
+          process.stdout.write(popupLines[i]);
         }
-        const promptPlainLen = promptPrefix.replace(/\u001b\[[0-9;]*m/g, "").length;
+
+        // 4. Clear any extra lines if previous popup was taller
+        if (renderedLineCount > popupLines.length) {
+          const diff = renderedLineCount - popupLines.length;
+          for (let i = 0; i < diff; i++) {
+            readline.moveCursor(process.stdout, 0, 1);
+            readline.cursorTo(process.stdout, 0);
+            readline.clearLine(process.stdout, 0);
+          }
+          readline.moveCursor(process.stdout, 0, -diff);
+        }
+
+        // 5. Return cursor back up to the prompt line
+        if (popupLines.length > 0) {
+          readline.moveCursor(process.stdout, 0, -popupLines.length);
+        }
         readline.cursorTo(process.stdout, promptPlainLen + cursor);
+
+        renderedLineCount = popupLines.length;
       };
 
       const cleanup = () => {
@@ -151,11 +167,19 @@ export class InteractivePrompt {
         if (process.stdin.setRawMode) {
           process.stdin.setRawMode(isRaw || false);
         }
+
+        // Clear all popup lines below prompt line
         if (renderedLineCount > 0) {
+          for (let i = 1; i <= renderedLineCount; i++) {
+            readline.moveCursor(process.stdout, 0, 1);
+            readline.cursorTo(process.stdout, 0);
+            readline.clearLine(process.stdout, 0);
+          }
           readline.moveCursor(process.stdout, 0, -renderedLineCount);
         }
+
         readline.cursorTo(process.stdout, 0);
-        readline.clearScreenDown(process.stdout);
+        readline.clearLine(process.stdout, 0);
         process.stdout.write(`${promptPrefix}${buffer}\n`);
       };
 
@@ -276,7 +300,6 @@ export class InteractivePrompt {
           cursor = buffer.length;
           updateSuggestions();
           render();
-          return;
         }
 
         // Printable input

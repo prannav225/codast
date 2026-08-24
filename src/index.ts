@@ -26,3 +26,6 @@ export * from "./core/retrieval/vector-search.js";
 export * from "./core/retrieval/relationship-search.js";
 export * from "./core/retrieval/ranker.js";
 export * from "./core/retrieval/retrieval-engine.js";
+export * from "./core/watcher/file-watcher.js";
+export * from "./core/conversation/session-history.js";
+export * from "./core/analysis/diagram-generator.js";

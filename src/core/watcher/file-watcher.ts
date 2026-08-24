@@ -22,7 +22,9 @@ export class FileWatcher {
   private debounceTimers = new Map<string, NodeJS.Timeout>();
 
   constructor(projectRoot: string, options: FileWatcherOptions = {}) {
-    this.projectRoot = path.resolve(projectRoot);
+    this.projectRoot = fs.existsSync(projectRoot)
+      ? fs.realpathSync(projectRoot)
+      : path.resolve(projectRoot);
     this.pipeline = new IndexingPipeline(this.projectRoot);
     const config = ConfigManager.loadConfig(this.projectRoot);
     this.filter = new FileFilter(this.projectRoot, config.exclude);
@@ -43,11 +45,15 @@ export class FileWatcher {
         (eventType, filename) => {
           if (!filename) return;
 
-          const absPath = path.join(this.projectRoot, filename);
-          const relPath = path.relative(this.projectRoot, absPath);
+          const absPath = path.isAbsolute(filename)
+            ? filename
+            : path.join(this.projectRoot, filename);
+          const relPath = path.relative(this.projectRoot, absPath).replace(/\\/g, "/");
 
-          // Check if file is ignored
-          if (this.filter.isIgnored(relPath) || !this.filter.isSupportedExtension(relPath)) {
+          if (relPath.startsWith("..")) return;
+
+          // Check if file is ignored or unsupported
+          if (this.filter.isIgnored(relPath) || !this.filter.isSupportedFile(relPath)) {
             return;
           }
 
@@ -72,7 +78,9 @@ export class FileWatcher {
     this.debounceTimers.clear();
 
     for (const watcher of this.watchers) {
-      watcher.close();
+      try {
+        watcher.close();
+      } catch {}
     }
     this.watchers = [];
     this.isWatching = false;

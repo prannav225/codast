@@ -11,6 +11,7 @@ import { IndexingPipeline } from "../../core/indexing/pipeline.js";
 import { SessionHistory } from "../../core/conversation/session-history.js";
 import { DiagramGenerator } from "../../core/analysis/diagram-generator.js";
 import { InteractivePrompt, type SuggestionItem } from "../../utils/interactive-prompt.js";
+import { FileWatcher } from "../../core/watcher/file-watcher.js";
 import { TerminalUI, PIXEL_SPINNER } from "../../utils/ui.js";
 import { Logger } from "../../utils/logger.js";
 
@@ -88,7 +89,11 @@ export async function chatCommand(): Promise<void> {
   const sessionHistory = new SessionHistory();
   const diagramGenerator = new DiagramGenerator(db, repo.id);
 
-  // 5. Candidate Builder for Live @-Mention and Slash Command Popup Suggestions
+  // 5. Automatic Background File Watcher for Real-Time AST & Vector Sync
+  const watcher = new FileWatcher(projectRoot);
+  watcher.start();
+
+  // 6. Candidate Builder for Live @-Mention and Slash Command Popup Suggestions
   const getCandidates = (): SuggestionItem[] => {
     const items: SuggestionItem[] = [];
 
@@ -362,6 +367,6 @@ export async function chatCommand(): Promise<void> {
       }
     }
   } finally {
-    // Session end
+    watcher.stop();
   }
 }

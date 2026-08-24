@@ -37,7 +37,8 @@
     "test:history": "tsx tests/history.test.ts",
     "test:mentions": "tsx tests/mentions.test.ts",
     "test:diagram": "tsx tests/diagram.test.ts",
-    "test": "npm run test:scanner && npm run test:ast && npm run test:sqlite && npm run test:chunker && npm run test:vector && npm run test:retrieval && npm run test:multi-lang && npm run test:history && npm run test:mentions && npm run test:diagram",
+    "test:watcher": "tsx tests/watcher.test.ts",
+    "test": "npm run test:scanner && npm run test:ast && npm run test:sqlite && npm run test:chunker && npm run test:vector && npm run test:retrieval && npm run test:multi-lang && npm run test:history && npm run test:mentions && npm run test:diagram && npm run test:watcher",
     "start": "node dist/cli/index.js"
   },
   "keywords": [
