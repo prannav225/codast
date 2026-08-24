@@ -5,6 +5,7 @@ export interface RankedContext {
   assembledContextText: string;
   totalCharacters: number;
   totalChunksCount: number;
+  tokenEstimate: number;
 }
 
 export class ContextRanker {
@@ -61,7 +62,8 @@ export class ContextRanker {
       chunks: selectedChunks,
       assembledContextText: contextSections.join("\n\n"),
       totalCharacters: currentChars,
-      totalChunksCount: selectedChunks.length
+      totalChunksCount: selectedChunks.length,
+      tokenEstimate: Math.round(currentChars / 4)
     };
   }
 

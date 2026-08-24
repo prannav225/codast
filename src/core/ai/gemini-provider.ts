@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { type AIService, type AIAnswerResponse, type CitationSource } from "./ai-service.js";
-import { ANSWER_SYSTEM_PROMPT, buildUserPrompt } from "./prompts.js";
+import { ANSWER_SYSTEM_PROMPT, STREAM_SYSTEM_PROMPT, buildUserPrompt } from "./prompts.js";
 import { DEFAULT_CHAT_MODEL, DEFAULT_EMBEDDING_MODEL } from "../../config/constants.js";
 import { MissingApiKeyError } from "../../utils/errors.js";
 import { Logger } from "../../utils/logger.js";
@@ -188,7 +188,7 @@ export class GeminiProvider implements AIService {
     options: { systemInstruction?: string; model?: string } = {}
   ): Promise<AIAnswerResponse> {
     const targetModel = options.model || this.chatModel;
-    const systemPrompt = options.systemInstruction || ANSWER_SYSTEM_PROMPT;
+    const systemPrompt = options.systemInstruction || STREAM_SYSTEM_PROMPT;
     const prompt = buildUserPrompt(question, assembledContext);
 
     const modelCandidates = [
@@ -221,7 +221,23 @@ export class GeminiProvider implements AIService {
           }
         }
 
-        return this.parseStructuredAnswer(accumulatedText);
+        // Parse sources from the streamed markdown
+        const sources: CitationSource[] = [];
+        const citationRegex = /([a-zA-Z0-9_\-\/\\.]+\.[a-zA-Z0-9]+):(\d+)(?:-(\d+))?/g;
+        let match;
+        while ((match = citationRegex.exec(accumulatedText)) !== null) {
+          sources.push({
+            path: match[1],
+            startLine: parseInt(match[2], 10),
+            endLine: match[3] ? parseInt(match[3], 10) : parseInt(match[2], 10)
+          });
+        }
+
+        return {
+          answer: accumulatedText,
+          sources,
+          confidence: "high"
+        };
       } catch (error: any) {
         lastError = error;
         Logger.debug("gemini-provider", `Stream model ${modelName} failed: ${error.message}. Trying next candidate...`);

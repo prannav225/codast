@@ -94,10 +94,9 @@ export class TerminalUI {
    * Generates OSC-8 terminal hyperlinks so clicking the file path opens it in the user's editor.
    */
   static createHyperlink(displayPath: string, fullPath: string, startLine?: number): string {
-    const lineSuffix = startLine ? `:${startLine}` : "";
     const targetUri = startLine ? `file://${fullPath}#${startLine}` : `file://${fullPath}`;
     // OSC 8 Hyperlink: \u001b]8;;URI\u0007TEXT\u001b]8;;\u0007
-    return `\u001b]8;;${targetUri}\u0007${displayPath}${lineSuffix}\u001b]8;;\u0007`;
+    return `\u001b]8;;${targetUri}\u0007${displayPath}\u001b]8;;\u0007`;
   }
 
   /**
