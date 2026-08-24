@@ -27,7 +27,6 @@ export class InteractivePrompt {
       let cursor = 0;
       let selectedIndex = 0;
       let scrollOffset = 0;
-      let renderedLineCount = 0;
       const visibleCount = 5;
 
       let suggestions: SuggestionItem[] = [];
@@ -78,17 +77,9 @@ export class InteractivePrompt {
       };
 
       const render = () => {
-        const promptPlainLen = promptPrefix.replace(/\u001b\[[0-9;]*m/g, "").length;
+        const plainPromptLen = promptPrefix.replace(/\u001b\[[0-9;]*m/g, "").length;
 
-        // 1. Move back up to prompt line from previous popup render
-        if (renderedLineCount > 0) {
-          readline.moveCursor(process.stdout, 0, -renderedLineCount);
-        }
-        readline.cursorTo(process.stdout, 0);
-        readline.clearLine(process.stdout, 0);
-        process.stdout.write(`${promptPrefix}${buffer}`);
-
-        // 2. Build popup lines if suggestions active
+        // Build popup lines
         const popupLines: string[] = [];
 
         if (isSuggesting && suggestions.length > 0) {
@@ -134,32 +125,23 @@ export class InteractivePrompt {
           popupLines.push(`  ${cyan("↑/↓")} ${dim("Navigate")} ${dim("•")} ${cyan("enter")} ${dim("Select")} ${dim("•")} ${cyan("tab")} ${dim("Complete")}`);
         }
 
-        // 3. Render popup lines below prompt line without triggering scrolling
-        for (let i = 0; i < popupLines.length; i++) {
-          readline.moveCursor(process.stdout, 0, 1);
-          readline.cursorTo(process.stdout, 0);
-          readline.clearLine(process.stdout, 0);
-          process.stdout.write(popupLines[i]);
+        // 1. Move to col 0 of prompt line and clear down from prompt line to bottom of screen
+        let out = `\r\x1b[J`;
+
+        // 2. Write prompt line + popup lines
+        const allLines = [`${promptPrefix}${buffer}`, ...popupLines];
+        out += allLines.join("\n");
+
+        // 3. Move cursor back up from bottom line to prompt line
+        const extraLines = allLines.length - 1;
+        if (extraLines > 0) {
+          out += `\x1b[${extraLines}A`;
         }
 
-        // 4. Clear any extra lines if previous popup was taller
-        if (renderedLineCount > popupLines.length) {
-          const diff = renderedLineCount - popupLines.length;
-          for (let i = 0; i < diff; i++) {
-            readline.moveCursor(process.stdout, 0, 1);
-            readline.cursorTo(process.stdout, 0);
-            readline.clearLine(process.stdout, 0);
-          }
-          readline.moveCursor(process.stdout, 0, -diff);
-        }
+        // 4. Place cursor at current buffer position on prompt line
+        out += `\r\x1b[${plainPromptLen + cursor + 1}G`;
 
-        // 5. Return cursor back up to the prompt line
-        if (popupLines.length > 0) {
-          readline.moveCursor(process.stdout, 0, -popupLines.length);
-        }
-        readline.cursorTo(process.stdout, promptPlainLen + cursor);
-
-        renderedLineCount = popupLines.length;
+        process.stdout.write(out);
       };
 
       const cleanup = () => {
@@ -168,19 +150,10 @@ export class InteractivePrompt {
           process.stdin.setRawMode(isRaw || false);
         }
 
-        // Clear all popup lines below prompt line
-        if (renderedLineCount > 0) {
-          for (let i = 1; i <= renderedLineCount; i++) {
-            readline.moveCursor(process.stdout, 0, 1);
-            readline.cursorTo(process.stdout, 0);
-            readline.clearLine(process.stdout, 0);
-          }
-          readline.moveCursor(process.stdout, 0, -renderedLineCount);
-        }
-
-        readline.cursorTo(process.stdout, 0);
-        readline.clearLine(process.stdout, 0);
-        process.stdout.write(`${promptPrefix}${buffer}\n`);
+        // Clear prompt line and any popup below it, then print final submitted line
+        let out = `\r\x1b[J`;
+        out += `${promptPrefix}${buffer}\n`;
+        process.stdout.write(out);
       };
 
       const onKeypress = (str: string, key: any) => {
@@ -300,6 +273,7 @@ export class InteractivePrompt {
           cursor = buffer.length;
           updateSuggestions();
           render();
+          return;
         }
 
         // Printable input

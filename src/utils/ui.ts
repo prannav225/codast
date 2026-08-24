@@ -3,14 +3,18 @@ import path from "node:path";
 import chalk from "chalk";
 
 export const PIXEL_SPINNER = {
-  interval: 75,
+  interval: 80,
   frames: [
-    `${chalk.hex("#FF5370")("█")}${chalk.hex("#FFCB6B")("▀")}${chalk.hex("#C3E88D")("▄")}`,
-    `${chalk.hex("#FFCB6B")("█")}${chalk.hex("#C3E88D")("▀")}${chalk.hex("#89DDFF")("▄")}`,
-    `${chalk.hex("#C3E88D")("█")}${chalk.hex("#89DDFF")("▀")}${chalk.hex("#82AAFF")("▄")}`,
-    `${chalk.hex("#89DDFF")("█")}${chalk.hex("#82AAFF")("▀")}${chalk.hex("#C792EA")("▄")}`,
-    `${chalk.hex("#82AAFF")("█")}${chalk.hex("#C792EA")("▀")}${chalk.hex("#FF5370")("▄")}`,
-    `${chalk.hex("#C792EA")("█")}${chalk.hex("#FF5370")("▀")}${chalk.hex("#FFCB6B")("▄")}`
+    chalk.hex("#89DDFF")("⠋"),
+    chalk.hex("#89DDFF")("⠙"),
+    chalk.hex("#82AAFF")("⠹"),
+    chalk.hex("#82AAFF")("⠸"),
+    chalk.hex("#C792EA")("⠼"),
+    chalk.hex("#C792EA")("⠴"),
+    chalk.hex("#82AAFF")("⠦"),
+    chalk.hex("#82AAFF")("⠧"),
+    chalk.hex("#89DDFF")("⠇"),
+    chalk.hex("#89DDFF")("⠏")
   ]
 };
 
@@ -35,7 +39,7 @@ export class TerminalUI {
   }
 
   /**
-   * Renders the iconic Antigravity-inspired geometric pixel banner with metadata.
+   * Renders the iconic 4-row 1:1 ratio square pixel banner with metadata.
    */
   static renderBanner(
     projectName: string,
@@ -60,12 +64,11 @@ export class TerminalUI {
     const gitBranch = this.getGitBranch(projectRoot);
     const branchInfo = gitBranch ? ` (${gitBranch})` : "";
     console.log();
-    // Multi-colored pixel icon + clean metadata block
-    console.log(`  ${coral("▄▄")}${amber("▄▄")}      ${title("Codast CLI 0.1.1")}`);
+    // 4-row pixel square logo with continuous diagonal cascade gradient
+    console.log(`  ${coral("▄▄")}${amber("▄▄")}      ${title("Codast CLI 0.2.0")}`);
     console.log(`  ${amber("██")}${emerald("██")}      ${textMuted(`Local Code Intelligence & REPL`)}`);
     console.log(`  ${emerald("██")}${cyan("██")}      ${textMain(`Neural AST & Semantic Index Active`)}`);
-    console.log(`  ${blue("██")}${purple("██")}      ${textMuted(`${projectRoot}${branchInfo}`)}`);
-    console.log(`  ${purple("▀▀")}${blue("▀▀")}`);
+    console.log(`  ${cyan("▀▀")}${purple("▀▀")}      ${textMuted(`${projectRoot}${branchInfo}`)}`);
     console.log(`  ${rule("─────────────────────────────────────────────────────────────────────────────")}`);
     console.log();
   }

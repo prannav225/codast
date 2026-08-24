@@ -224,9 +224,27 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
-      if (lower === "/tree") {
-        const files = repoManager.getAllFiles(repo.id);
-        TerminalUI.renderFileTree(files.map(f => ({ path: f.path, lines: f.line_count })));
+      if (lower.startsWith("/tree")) {
+        const parts = query.split(/\s+/);
+        const target = parts.length > 1 ? parts.slice(1).join(" ").replace(/^@/, "").trim() : "";
+        const allFiles = repoManager.getAllFiles(repo.id);
+        const filtered = target
+          ? allFiles.filter(f => f.path.toLowerCase().includes(target.toLowerCase()))
+          : allFiles;
+        TerminalUI.renderFileTree(filtered.map(f => ({ path: f.path, lines: f.line_count })));
+        continue;
+      }
+
+      if (lower === "/config") {
+        const rule = chalk.hex("#3B4261");
+        console.log(`\n  ${chalk.hex("#82AAFF").bold("Active Configuration:")}`);
+        console.log(`  ${rule("─────────────────────────────────────────")}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Provider:")}       ${chalk.hex("#89DDFF")(config.embeddingProvider)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Chat Model:")}     ${chalk.hex("#C3E88D")(config.chatModel)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Embedding Model:")}${chalk.hex("#C3E88D")(config.embeddingModel)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Gemini API Key:")} ${geminiKey ? chalk.hex("#89DDFF")("Configured (active)") : chalk.hex("#F07178")("Not set")}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Voyage API Key:")} ${ConfigManager.getVoyageApiKey(projectRoot) ? chalk.hex("#89DDFF")("Configured (active)") : chalk.hex("#F07178")("Not set")}`);
+        console.log(`  ${rule("─────────────────────────────────────────")}\n`);
         continue;
       }
 
@@ -246,8 +264,13 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
-      if (lower === "/files") {
-        const files = repoManager.getAllFiles(repo.id);
+      if (lower.startsWith("/files")) {
+        const parts = query.split(/\s+/);
+        const target = parts.length > 1 ? parts.slice(1).join(" ").replace(/^@/, "").trim() : "";
+        const allFiles = repoManager.getAllFiles(repo.id);
+        const files = target
+          ? allFiles.filter(f => f.path.toLowerCase().includes(target.toLowerCase()))
+          : allFiles;
         console.log(chalk.bold.hex("#82AAFF")(`\n  Indexed Files (${files.length}):`));
         for (const f of files.slice(0, 30)) {
           console.log(`    ${chalk.hex("#FFCB6B")("●")} ${chalk.hex("#EEFFFF")(f.path)} ${chalk.hex("#676E95")(`(${f.line_count} lines)`)}`);
@@ -284,6 +307,40 @@ export async function chatCommand(): Promise<void> {
           indexSpinner.fail(chalk.red(`Re-index failed: ${e.message}`));
         }
         console.log();
+        continue;
+      }
+
+      // Fast path for Conversational Greetings & Pleasantries (zero token waste)
+      const cleanGreeting = query.trim().toLowerCase().replace(/[!?.,]+$/, "");
+      const greetingsMap: Record<string, string> = {
+        "hi": "Hello! How can I assist you with your codebase today?",
+        "hey": "Hello! How can I assist you with your codebase today?",
+        "hello": "Hello! How can I assist you with your codebase today?",
+        "yo": "Hey there! What can I help you explore or trace in the codebase?",
+        "sup": "All systems active. What would you like to inspect?",
+        "howdy": "Howdy! How can I help you navigate the codebase?",
+        "good morning": "Good morning! How can I help with your code today?",
+        "good afternoon": "Good afternoon! How can I help with your code today?",
+        "good evening": "Good evening! How can I help with your code today?",
+        "thanks": "You're very welcome! Let me know if you need anything else.",
+        "thank you": "You're very welcome! Let me know if you need anything else.",
+        "thx": "Anytime! Standing by for your next query.",
+        "ty": "Anytime! Standing by for your next query.",
+        "who are you": "I am Codast, your local codebase intelligence engine. You can ask me technical questions about your code, trace functions, use @file or @symbol mentions, or run /diagram and /tree.",
+        "what can you do": "I can analyze your codebase with AST parsing, trace call flows, resolve @file/@symbol mentions, generate architecture diagrams (/diagram), display project trees (/tree), and answer complex technical questions.",
+        "cool": "Standing by for your next query!",
+        "nice": "Standing by for your next query!",
+        "awesome": "Glad to help! Let me know what you want to explore next.",
+        "ok": "Standing by.",
+        "okay": "Standing by.",
+        "alright": "Standing by."
+      };
+
+      if (greetingsMap[cleanGreeting] && !query.includes("@")) {
+        const reply = greetingsMap[cleanGreeting];
+        sessionHistory.addUserTurn(query);
+        sessionHistory.addAssistantTurn(reply);
+        console.log(`\n  ${chalk.hex("#EEFFFF")(reply)}\n`);
         continue;
       }
 

@@ -14,8 +14,8 @@ export function createProgram(): Command {
 
   program
     .name("codast")
-    .description("⚡ AI-Powered Local Codebase Intelligence & Interactive Assistant")
-    .version("0.1.1")
+    .description("Local-first AI-powered codebase intelligence CLI & REPL")
+    .version("0.2.0")
     .option("-v, --verbose", "enable verbose logging", () => {
       Logger.setVerbose(true);
     })

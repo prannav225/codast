@@ -224,6 +224,14 @@ export class GeminiProvider implements AIService {
   private parseStructuredAnswer(rawText: string): AIAnswerResponse {
     let cleanText = rawText.trim();
 
+    // Strip markdown codeblock wrapper if present
+    if (cleanText.startsWith("```")) {
+      const match = cleanText.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+      if (match && match[1]) {
+        cleanText = match[1].trim();
+      }
+    }
+
     // If the model wrapped in JSON (legacy or unexpected), extract the answer field
     if (cleanText.startsWith("{") && cleanText.includes('"answer"')) {
       try {
@@ -233,7 +241,7 @@ export class GeminiProvider implements AIService {
         }
       } catch {
         // Regex fallback if JSON was malformed
-        const match = cleanText.match(/"answer"\s*:\s*"([\s\S]*?)(?:",\s*"sources"|"\s*\})/);
+        const match = cleanText.match(/"answer"\s*:\s*"([\s\S]*?)(?:",\s*"sources"|",\s*"confidence"|"\s*\})/);
         if (match && match[1]) {
           cleanText = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
         }

@@ -64,9 +64,9 @@ export class RetrievalEngine {
 
     Logger.debug("retrieval", `Discovered ${relationshipResults.length} graph relationship expansions`);
 
-    // 4. For broad queries, pull in root entrypoint files & core models
+    // 4. For broad architectural/overview queries, pull in root entrypoint files & core models
     let broadContextChunks: RetrievedChunk[] = [];
-    if ((isBroadQuery && mentionChunks.length === 0) || symbolResults.length + vectorResults.length === 0) {
+    if (isBroadQuery && mentionChunks.length === 0) {
       const allChunks = this.repoManager.getAllChunks(this.repoId);
       const entrypoints = allChunks.filter(c => {
         const p = (c.file_path || "").toLowerCase();
@@ -87,7 +87,7 @@ export class RetrievalEngine {
       });
 
       broadContextChunks = (entrypoints.length > 0 ? entrypoints : allChunks)
-        .slice(0, 10)
+        .slice(0, 8)
         .map(c => ({
           id: c.id,
           filePath: c.file_path || "",
