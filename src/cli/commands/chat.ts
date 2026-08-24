@@ -7,10 +7,11 @@ import { ConfigManager } from "../../config/config-manager.js";
 import { SqliteDatabase } from "../../storage/sqlite/db.js";
 import { SqliteRepositoryManager } from "../../storage/sqlite/repositories.js";
 import { LanceVectorStore } from "../../storage/vector/lance-store.js";
-import { GeminiProvider } from "../../core/ai/gemini-provider.js";
-import { createEmbeddingProvider } from "../../core/ai/ai-service.js";
+import { createAIService, createEmbeddingProvider } from "../../core/ai/ai-service.js";
 import { RetrievalEngine } from "../../core/retrieval/retrieval-engine.js";
 import { IndexingPipeline } from "../../core/indexing/pipeline.js";
+import { SessionHistory } from "../../core/conversation/session-history.js";
+import { DiagramGenerator } from "../../core/analysis/diagram-generator.js";
 import { TerminalUI, PIXEL_SPINNER } from "../../utils/ui.js";
 import { Logger } from "../../utils/logger.js";
 
@@ -25,11 +26,12 @@ export async function chatCommand(): Promise<void> {
   }
 
   const config = ConfigManager.loadConfig(projectRoot);
+  const isOllama = config.embeddingProvider === "ollama";
   const geminiKey = ConfigManager.getApiKey(projectRoot);
 
-  if (!geminiKey) {
+  if (!isOllama && !geminiKey) {
     Logger.error(
-      "Gemini API key is not configured.\nPlease run:\n  codast config set api-key <YOUR_GEMINI_KEY>"
+      "Gemini API key is not configured.\nPlease run:\n  codast config set api-key <YOUR_GEMINI_KEY>\nOr switch to local offline Ollama:\n  codast config set provider ollama"
     );
     process.exitCode = 1;
     return;
@@ -78,12 +80,14 @@ export async function chatCommand(): Promise<void> {
     projectRoot
   );
 
-  // 4. Initialize AI services
+  // 4. Initialize AI services, Retrieval Engine, Session History, & Diagram Engine
   const embeddingProvider = createEmbeddingProvider(projectRoot);
-  const aiProvider = new GeminiProvider(geminiKey, { chatModel: config.chatModel });
+  const aiService = createAIService(projectRoot);
   const vectorStore = new LanceVectorStore(vectorsDir);
   await vectorStore.initialize();
-  const retrievalEngine = new RetrievalEngine(db, repo.id, vectorStore, embeddingProvider);
+  const retrievalEngine = new RetrievalEngine(db, repo.id, vectorStore, embeddingProvider, projectRoot);
+  const sessionHistory = new SessionHistory();
+  const diagramGenerator = new DiagramGenerator(db, repo.id);
 
   // 5. Interactive Readline Interface
   const rl = readline.createInterface({
@@ -128,7 +132,14 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
+      if (lower === "/reset") {
+        sessionHistory.clear();
+        console.log(chalk.hex("#C3E88D")("\n  ✔ Conversation history reset.\n"));
+        continue;
+      }
+
       if (lower === "/clear") {
+        sessionHistory.clear();
         const freshStats = repoManager.getProjectStats(repo.id);
         TerminalUI.renderBanner(
           projectName,
@@ -140,6 +151,16 @@ export async function chatCommand(): Promise<void> {
           config,
           projectRoot
         );
+        continue;
+      }
+
+      if (lower.startsWith("/diagram") || lower.startsWith("/arch")) {
+        const parts = query.split(/\s+/);
+        const target = parts.length > 1 ? parts.slice(1).join(" ") : undefined;
+        console.log(`\n  ${chalk.hex("#82AAFF").bold("◈ Architecture Diagram")}${target ? ` (${target})` : ""}:`);
+        const mermaid = diagramGenerator.generateArchitectureMermaid(target);
+        console.log(TerminalUI.formatMarkdown(mermaid));
+        console.log();
         continue;
       }
 
@@ -206,17 +227,7 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
-      if (lower === "/config" || lower === "/model") {
-        const voyageKey = ConfigManager.getVoyageApiKey(projectRoot);
-        console.log(`\n  ${chalk.bold("Gemini Key:")}   ${geminiKey.slice(0, 4)}...${geminiKey.slice(-4)}`);
-        console.log(`  ${chalk.bold("Voyage Key:")}   ${voyageKey ? `${voyageKey.slice(0, 4)}...${voyageKey.slice(-4)}` : chalk.yellow("Not set")}`);
-        console.log(`  ${chalk.bold("Provider:")}     ${config.embeddingProvider || "voyage"}`);
-        console.log(`  ${chalk.bold("Chat Model:")}   ${config.chatModel}`);
-        console.log(`  ${chalk.bold("Embed Model:")}  ${config.embeddingModel}\n`);
-        continue;
-      }
-
-      // Process Question with Animated Pixel Spinner
+      // Process Question with Multi-Turn Memory & @ Mention Support
       const startTime = Date.now();
       console.log();
 
@@ -227,18 +238,21 @@ export async function chatCommand(): Promise<void> {
       }).start();
 
       try {
+        sessionHistory.addUserTurn(query);
+
+        // 1. Retrieve Context (including @mentions, symbols, vectors, call graph)
         const context = await retrievalEngine.retrieveContext(query);
         const durationSec = (Date.now() - startTime) / 1000;
 
         spinner.stop();
 
-        // 1. Render Antigravity Tool Action Lines
+        // 2. Render Antigravity Tool Action Lines
         const uniquePaths = Array.from(new Set(context.chunks.map(c => c.filePath)));
         for (const p of uniquePaths.slice(0, 5)) {
           TerminalUI.renderToolAction("Read", `${projectRoot}/${p}`);
         }
 
-        // 2. Render Thought Line
+        // 3. Render Thought Line
         TerminalUI.renderThoughtHeader(durationSec, context.tokenEstimate);
 
         if (context.totalChunksCount === 0) {
@@ -246,27 +260,35 @@ export async function chatCommand(): Promise<void> {
           continue;
         }
 
-        // 3. Synthesize Grounded Answer with Pixel Spinner
+        // 4. Synthesize Grounded Answer with Multi-Turn Conversation Context
         const genSpinner = ora({
           spinner: PIXEL_SPINNER,
           text: chalk.hex("#EEFFFF")("Synthesizing grounded answer..."),
           discardStdin: false
         }).start();
 
-        const result = await aiProvider.generateAnswer(
+        const historyContext = sessionHistory.getFormattedHistory();
+        const fullAssembledContext = historyContext
+          ? `${historyContext}\n\n${context.assembledContextText}`
+          : context.assembledContextText;
+
+        const result = await aiService.generateAnswer(
           query,
-          context.assembledContextText,
+          fullAssembledContext,
           { systemInstruction: undefined }
         );
 
         genSpinner.stop();
 
-        // 4. Render Clean Markdown (NO raw asterisks or markdown syntax!)
+        // Record Assistant Turn
+        sessionHistory.addAssistantTurn(result.answer);
+
+        // 5. Render Clean Markdown
         const formatted = TerminalUI.formatMarkdown(result.answer);
         console.log(formatted);
         console.log();
 
-        // 5. Resolve citations
+        // 6. Resolve citations
         const resolvedSources =
           result.sources && result.sources.length > 0
             ? result.sources
@@ -276,7 +298,7 @@ export async function chatCommand(): Promise<void> {
                 endLine: c.endLine
               }));
 
-        // 6. Render Sources & Bottom Status Bar
+        // 7. Render Sources & Bottom Status Bar
         TerminalUI.renderSources(resolvedSources, projectRoot);
         TerminalUI.renderBottomBar();
       } catch (err: any) {

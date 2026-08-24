@@ -8,6 +8,7 @@ import { SqliteDatabase } from "../../storage/sqlite/db.js";
 import { SqliteRepositoryManager, type ChunkRecord } from "../../storage/sqlite/repositories.js";
 import { LanceVectorStore, type VectorRecord } from "../../storage/vector/lance-store.js";
 import { createEmbeddingProvider } from "../ai/ai-service.js";
+import { computeHash } from "../../utils/hash.js";
 import { Logger } from "../../utils/logger.js";
 
 export interface IndexingOptions {
@@ -43,17 +44,17 @@ export class IndexingPipeline {
       Logger.debug("indexer", `${stage}${detail ? ` (${detail})` : ""}`);
     };
 
-    // 1. Config & Embedding Provider verification (Voyage AI or Gemini)
+    // 1. Config & Embedding Provider verification (Voyage AI, Gemini, or Ollama)
     const config = ConfigManager.loadConfig(this.projectRoot);
     const embeddingProvider = createEmbeddingProvider(this.projectRoot);
 
     // 2. Discover and filter repository files
-    notify("Discovering files", "Scanning JS/TS source tree");
+    notify("Discovering files", "Scanning source tree");
     const scanner = new RepositoryScanner(this.projectRoot, config.exclude);
     const scanResult = await scanner.scan();
 
     if (scanResult.totalFiles === 0) {
-      Logger.warn("No JavaScript or TypeScript source files discovered.");
+      Logger.warn("No supported source files discovered.");
     }
 
     // 3. Initialize SQLite & Vector Storage
@@ -166,7 +167,7 @@ export class IndexingPipeline {
     if (chunksNeedingEmbedding.length > 0) {
       notify("Generating embeddings", `0/${chunksNeedingEmbedding.length} chunks via ${config.embeddingProvider || "Voyage AI"}`);
 
-      const batchSize = 80; // High-throughput batch size for Voyage AI
+      const batchSize = 80;
       const totalToEmbed = chunksNeedingEmbedding.length;
 
       try {
@@ -228,5 +229,114 @@ export class IndexingPipeline {
       embeddedChunks: embeddedChunksCount,
       durationMs
     };
+  }
+
+  /**
+   * Fast incremental re-indexing for a single modified or created file.
+   */
+  async indexSingleFile(relativePath: string): Promise<{ symbolCount: number; chunkCount: number }> {
+    const absPath = path.isAbsolute(relativePath) ? relativePath : path.join(this.projectRoot, relativePath);
+    const rel = path.relative(this.projectRoot, absPath);
+
+    if (!fs.existsSync(absPath)) {
+      throw new Error(`File does not exist: ${absPath}`);
+    }
+
+    const content = fs.readFileSync(absPath, "utf8");
+    const lines = content.split("\n").length;
+    const bytes = Buffer.byteLength(content, "utf8");
+    const contentHash = computeHash(content);
+
+    const dbPath = ConfigManager.getMetadataDbPath(this.projectRoot);
+    const vectorsDir = ConfigManager.getVectorsDirPath(this.projectRoot);
+    const db = SqliteDatabase.get(dbPath);
+    const repoManager = new SqliteRepositoryManager(db);
+    const projectName = path.basename(this.projectRoot);
+    const repo = repoManager.getOrCreateRepository(this.projectRoot, projectName);
+
+    const scannedFile: ScannedFile = {
+      absolutePath: absPath,
+      relativePath: rel,
+      extension: path.extname(absPath),
+      sizeBytes: bytes,
+      lineCount: lines,
+      contentHash
+    };
+
+    const fileId = repoManager.saveFile(repo.id, scannedFile);
+    const parser = new AstParser(this.projectRoot);
+    const analysis = parser.parseSourceFile(rel, content);
+
+    // Save Symbols & Relationships
+    repoManager.saveSymbols(fileId, analysis.symbols);
+    repoManager.saveRelationships(repo.id, fileId, analysis.relationships);
+
+    // Generate Chunks
+    const chunks = LogicalChunker.chunkFile(rel, content, analysis.symbols);
+    const sqliteChunkRecords: ChunkRecord[] = chunks.map(chunk => ({
+      id: chunk.id,
+      file_id: fileId,
+      symbol_id: chunk.symbolId,
+      name: chunk.name,
+      chunk_type: chunk.chunkType,
+      start_line: chunk.startLine,
+      end_line: chunk.endLine,
+      content: chunk.content,
+      content_hash: chunk.contentHash
+    }));
+
+    repoManager.saveChunks(fileId, sqliteChunkRecords);
+
+    // Embed Chunks
+    try {
+      const embeddingProvider = createEmbeddingProvider(this.projectRoot);
+      const vectorStore = new LanceVectorStore(vectorsDir);
+      await vectorStore.initialize();
+
+      const batchTexts = chunks.map(c => c.enrichedContent);
+      const embeddings = await embeddingProvider.generateEmbeddings(batchTexts, batchTexts.length);
+
+      const vectorRecords: VectorRecord[] = chunks.map((chunk, idx) => ({
+        id: chunk.id,
+        vector: embeddings[idx],
+        filePath: chunk.filePath,
+        symbolName: chunk.name,
+        chunkType: chunk.chunkType,
+        startLine: chunk.startLine,
+        endLine: chunk.endLine,
+        content: chunk.content,
+        contentHash: chunk.contentHash
+      }));
+
+      await vectorStore.upsertChunks(vectorRecords);
+    } catch (err: any) {
+      Logger.debug("pipeline", `Incremental embedding skipped: ${err.message}`);
+    }
+
+    return {
+      symbolCount: analysis.symbols.length,
+      chunkCount: chunks.length
+    };
+  }
+
+  /**
+   * Removes a deleted file's metadata and vector chunks.
+   */
+  async removeFile(relativePath: string): Promise<void> {
+    const dbPath = ConfigManager.getMetadataDbPath(this.projectRoot);
+    const db = SqliteDatabase.get(dbPath);
+    const repoManager = new SqliteRepositoryManager(db);
+    const projectName = path.basename(this.projectRoot);
+    const repo = repoManager.getOrCreateRepository(this.projectRoot, projectName);
+
+    const allFiles = repoManager.getAllFiles(repo.id);
+    const file = allFiles.find(f => f.path === relativePath);
+
+    if (file) {
+      db.prepare(`DELETE FROM chunks WHERE file_id = ?`).run(file.id);
+      db.prepare(`DELETE FROM relationships WHERE file_id = ?`).run(file.id);
+      db.prepare(`DELETE FROM symbols WHERE file_id = ?`).run(file.id);
+      db.prepare(`DELETE FROM files WHERE id = ?`).run(file.id);
+    }
   }
 }

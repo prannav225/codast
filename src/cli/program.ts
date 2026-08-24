@@ -5,6 +5,8 @@ import { configCommand } from "./commands/config.js";
 import { indexCommand } from "./commands/index.js";
 import { askCommand } from "./commands/ask.js";
 import { chatCommand } from "./commands/chat.js";
+import { watchCommand } from "./commands/watch.js";
+import { diagramCommand } from "./commands/diagram.js";
 import { Logger } from "../utils/logger.js";
 
 export function createProgram(): Command {
@@ -13,12 +15,12 @@ export function createProgram(): Command {
   program
     .name("codast")
     .description("⚡ AI-Powered Local Codebase Intelligence & Interactive Assistant")
-    .version("0.1.0")
+    .version("0.1.1")
     .option("-v, --verbose", "enable verbose logging", () => {
       Logger.setVerbose(true);
     })
     .action(async () => {
-      // Default action when running `cai` with no subcommand: Start Interactive Chat REPL!
+      // Default action: Start Interactive Chat REPL!
       await chatCommand();
     });
 
@@ -27,6 +29,23 @@ export function createProgram(): Command {
     .description("Start an interactive chat session with your codebase")
     .action(async () => {
       await chatCommand();
+    });
+
+  program
+    .command("watch")
+    .description("Watch source files for changes and automatically re-index in real-time")
+    .action(async () => {
+      await watchCommand();
+    });
+
+  program
+    .command("diagram")
+    .description("Generate visual Mermaid or ASCII architecture and sequence diagrams")
+    .argument("[target]", "file or symbol name to diagram (defaults to entire architecture)")
+    .option("-t, --type <type>", "diagram type: architecture, sequence", "architecture")
+    .option("-a, --ascii", "render quick ASCII box tree instead of Mermaid")
+    .action(async (target, options) => {
+      await diagramCommand(target, options);
     });
 
   program
@@ -46,7 +65,7 @@ export function createProgram(): Command {
 
   program
     .command("config")
-    .description("Manage configuration settings (voyage-key, api-key, chat-model, embedding-model)")
+    .description("Manage configuration settings (provider, voyage-key, api-key, chat-model, embedding-model)")
     .argument("[action]", "action to perform (get, set, show, list)", "show")
     .argument("[key]", "configuration key")
     .argument("[value]", "configuration value to set")

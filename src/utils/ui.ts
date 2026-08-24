@@ -334,21 +334,22 @@ export class TerminalUI {
     console.log(`
   ${chalk.hex("#EEFFFF").bold("Commands:")}
   ${dim("──────────────────────────────────────────────────────────")}
-    ${cmd("/index")}       ${desc("Re-scan and index codebase on the fly")}
+    ${cmd("/diagram")}     ${desc("Generate Mermaid/ASCII architecture diagrams (/diagram [target])")}
     ${cmd("/tree")}        ${desc("View visual directory file tree")}
     ${cmd("/status")}      ${desc("View indexed files, symbols, chunks & models")}
     ${cmd("/files")}       ${desc("List indexed source files")}
+    ${cmd("/reset")}       ${desc("Clear conversation memory")}
     ${cmd("/config")}      ${desc("View active API keys and model configurations")}
-    ${cmd("/clear")}       ${desc("Clear the terminal screen")}
+    ${cmd("/clear")}       ${desc("Clear the terminal screen and reset history")}
     ${cmd("/help")}        ${desc("Show this command reference")}
     ${cmd("/exit")}        ${desc("Exit the chat session")}
 
-  ${chalk.hex("#EEFFFF").bold("Examples:")}
+  ${chalk.hex("#EEFFFF").bold("Examples & @Mentions:")}
   ${dim("──────────────────────────────────────────────────────────")}
-    • "what does this project do?"
-    • "explain the authentication flow"
-    • "where is the database connection configured?"
-    • "trace all callers of the payment processing service"
+    • "@src/services/auth.ts explain the authentication flow"
+    • "how does @RepositoryScanner work with @filters.ts?"
+    • "/diagram auth"
+    • "what happens if the session expires? (remembers context)"
 `);
   }
 }

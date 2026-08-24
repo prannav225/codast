@@ -274,6 +274,15 @@ export class SqliteRepositoryManager {
     return this.db.prepare<[number], FileRecord>("SELECT * FROM files WHERE repository_id = ?").all(repoId);
   }
 
+  getAllRelationships(repoId: number): RelationshipRecord[] {
+    const query = `
+      SELECT r.*, f.path as source_file_path FROM relationships r
+      JOIN files f ON r.source_file_id = f.id
+      WHERE r.repository_id = ?
+    `;
+    return this.db.prepare(query).all(repoId) as RelationshipRecord[];
+  }
+
   getAllChunks(repoId: number): ChunkRecord[] {
     const query = `
       SELECT c.*, f.path as file_path FROM chunks c

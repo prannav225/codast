@@ -34,7 +34,10 @@
     "test:vector": "tsx tests/vector.test.ts",
     "test:retrieval": "tsx tests/retrieval.test.ts",
     "test:multi-lang": "tsx tests/multi-lang.test.ts",
-    "test": "npm run test:scanner && npm run test:ast && npm run test:sqlite && npm run test:chunker && npm run test:vector && npm run test:retrieval && npm run test:multi-lang",
+    "test:history": "tsx tests/history.test.ts",
+    "test:mentions": "tsx tests/mentions.test.ts",
+    "test:diagram": "tsx tests/diagram.test.ts",
+    "test": "npm run test:scanner && npm run test:ast && npm run test:sqlite && npm run test:chunker && npm run test:vector && npm run test:retrieval && npm run test:multi-lang && npm run test:history && npm run test:mentions && npm run test:diagram",
     "start": "node dist/cli/index.js"
   },
   "keywords": [

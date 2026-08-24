@@ -1,6 +1,7 @@
 import { ConfigManager } from "../../config/config-manager.js";
 import { GeminiProvider } from "./gemini-provider.js";
 import { VoyageProvider, type EmbeddingProvider } from "./voyage-provider.js";
+import { OllamaProvider } from "./ollama-provider.js";
 import { MissingApiKeyError } from "../../utils/errors.js";
 
 export interface CitationSource {
@@ -32,12 +33,42 @@ export interface AIService {
   ): Promise<AIAnswerResponse>;
 }
 
+export function createAIService(projectRoot: string): AIService {
+  const config = ConfigManager.loadConfig(projectRoot);
+
+  if (config.embeddingProvider === "ollama") {
+    return new OllamaProvider({
+      chatModel: config.chatModel,
+      embeddingModel: config.embeddingModel
+    });
+  }
+
+  const geminiKey = ConfigManager.getApiKey(projectRoot);
+  if (geminiKey) {
+    return new GeminiProvider(geminiKey, {
+      chatModel: config.chatModel,
+      embeddingModel: config.embeddingModel
+    });
+  }
+
+  throw new MissingApiKeyError();
+}
+
 export function createEmbeddingProvider(projectRoot: string): EmbeddingProvider {
   const config = ConfigManager.loadConfig(projectRoot);
+
+  // 1. Ollama offline provider
+  if (config.embeddingProvider === "ollama") {
+    return new OllamaProvider({
+      chatModel: config.chatModel,
+      embeddingModel: config.embeddingModel || "nomic-embed-text:latest"
+    });
+  }
+
   const voyageKey = ConfigManager.getVoyageApiKey(projectRoot);
   const geminiKey = ConfigManager.getApiKey(projectRoot);
 
-  // If Voyage key is available, default to Voyage for code embeddings with a valid Voyage model
+  // 2. Voyage AI for code embeddings
   if (voyageKey && config.embeddingProvider !== "gemini") {
     const validVoyageModel =
       config.embeddingModel && config.embeddingModel.startsWith("voyage")
@@ -47,6 +78,7 @@ export function createEmbeddingProvider(projectRoot: string): EmbeddingProvider 
     return new VoyageProvider(voyageKey, { model: validVoyageModel });
   }
 
+  // 3. Gemini embeddings
   if (geminiKey) {
     const validGeminiModel =
       config.embeddingModel && !config.embeddingModel.startsWith("voyage")

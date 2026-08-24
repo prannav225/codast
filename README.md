@@ -68,8 +68,13 @@ codast config set api-key <YOUR_GEMINI_KEY>
 # Configure Voyage AI API key (for code embeddings)
 codast config set voyage-key <YOUR_VOYAGE_KEY>
 
-# Optional: Switch embedding provider ('voyage' or 'gemini')
+# Optional: Switch provider ('voyage', 'gemini', or 'ollama')
 codast config set provider voyage
+
+# 100% Offline Local LLM mode (Ollama)
+codast config set provider ollama
+codast config set chat-model qwen2.5-coder:latest
+codast config set embedding-model nomic-embed-text:latest
 ```
 
 ---
@@ -88,20 +93,24 @@ cai
 
 Inside the interactive REPL:
 ```text
-my_project ❯ explain the authentication flow
-my_project ❯ where is the database connection configured?
-my_project ❯ what are the main components and how do they interact?
+> explain the authentication flow
+> what happens if the session expires? (multi-turn memory)
+> explain the error handling in @src/services/auth.ts
+> how does @AuthService.login interact with @db/schema.sql?
 ```
 
 ### Slash Commands
 
 | Command | Action |
 | :--- | :--- |
+| `/diagram` | Generates Mermaid & ASCII architecture diagrams (`/diagram [target]`) |
+| `/tree` | Visualizes directory file tree with line counts |
+| `/reset` | Clears conversation memory |
 | `/index` | Re-scans and indexes the codebase on the fly |
 | `/status` | Displays repository metrics, files, symbols, and chunks |
 | `/files` | Lists all indexed source files |
 | `/config` | Views active API keys and model configurations |
-| `/clear` | Clears the terminal screen |
+| `/clear` | Clears the terminal screen and resets history |
 | `/help` | Displays command cheatsheet |
 | `/exit` | Exits the interactive session |
 
@@ -115,6 +124,12 @@ codast init
 
 # Index the codebase
 codast index [--force] [--verbose]
+
+# Watch files in real-time and incrementally re-index on save
+codast watch
+
+# Generate visual architecture or sequence call-flow diagrams
+codast diagram [target] [--type architecture|sequence] [--ascii]
 
 # View index status and metrics
 codast status

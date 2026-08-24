@@ -4,7 +4,7 @@ import { DEFAULT_CHAT_MODEL, DEFAULT_EMBEDDING_MODEL } from "./constants.js";
 export const ConfigSchema = z.object({
   apiKey: z.string().optional(),
   voyageApiKey: z.string().optional(),
-  embeddingProvider: z.enum(["voyage", "gemini"]).default("voyage"),
+  embeddingProvider: z.enum(["voyage", "gemini", "ollama"]).default("voyage"),
   embeddingModel: z.string().default("voyage-code-2"),
   chatModel: z.string().default(DEFAULT_CHAT_MODEL),
   exclude: z.array(z.string()).default([])

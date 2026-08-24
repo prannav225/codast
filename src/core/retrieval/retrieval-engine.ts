@@ -4,6 +4,7 @@ import { type EmbeddingProvider } from "../ai/voyage-provider.js";
 import { SymbolSearch, type RetrievedChunk } from "./symbol-search.js";
 import { VectorSearch } from "./vector-search.js";
 import { RelationshipSearch } from "./relationship-search.js";
+import { MentionResolver } from "./mention-resolver.js";
 import { ContextRanker, type RankedContext } from "./ranker.js";
 import { SqliteRepositoryManager } from "../../storage/sqlite/repositories.js";
 import { Logger } from "../../utils/logger.js";
@@ -12,22 +13,33 @@ export class RetrievalEngine {
   private readonly symbolSearch: SymbolSearch;
   private readonly vectorSearch: VectorSearch;
   private readonly relationshipSearch: RelationshipSearch;
+  private readonly mentionResolver: MentionResolver;
   private readonly repoManager: SqliteRepositoryManager;
   private readonly repoId: number;
 
-  constructor(db: Database, repoId: number, vectorStore: LanceVectorStore, embeddingProvider: EmbeddingProvider) {
+  constructor(
+    db: Database,
+    repoId: number,
+    vectorStore: LanceVectorStore,
+    embeddingProvider: EmbeddingProvider,
+    projectRoot: string = process.cwd()
+  ) {
     this.repoManager = new SqliteRepositoryManager(db);
     this.repoId = repoId;
     this.symbolSearch = new SymbolSearch(db, repoId);
     this.vectorSearch = new VectorSearch(vectorStore, embeddingProvider);
     this.relationshipSearch = new RelationshipSearch(db, repoId);
+    this.mentionResolver = new MentionResolver(db, repoId, projectRoot);
   }
 
   /**
-   * Performs parallel multi-modal hybrid retrieval combining exact symbols, vectors, and graph relationships.
+   * Performs parallel multi-modal hybrid retrieval combining explicit @mentions, exact symbols, vectors, and graph relationships.
    */
   async retrieveContext(query: string, maxCharacters?: number): Promise<RankedContext> {
     Logger.debug("retrieval", `Executing hybrid search for: "${query}"`);
+
+    // 1. Resolve explicit @file or @symbol mentions first
+    const { chunks: mentionChunks } = this.mentionResolver.resolveMentions(query);
 
     const lowerQuery = query.toLowerCase();
     const isBroadQuery =
@@ -38,23 +50,23 @@ export class RetrievalEngine {
       lowerQuery.includes("overview") ||
       lowerQuery.includes("architecture");
 
-    // 1. Run Symbol search & Vector search in parallel
+    // 2. Run Symbol search & Vector search in parallel
     const [symbolResults, vectorResults] = await Promise.all([
       Promise.resolve(this.symbolSearch.search(query)),
       this.vectorSearch.search(query, 15)
     ]);
 
-    Logger.debug("retrieval", `Found ${symbolResults.length} symbol matches and ${vectorResults.length} vector matches`);
+    Logger.debug("retrieval", `Found ${mentionChunks.length} mention matches, ${symbolResults.length} symbol matches, and ${vectorResults.length} vector matches`);
 
-    // 2. Expand graph relationships based on top candidate nodes
-    const topCandidates = [...symbolResults.slice(0, 6), ...vectorResults.slice(0, 6)];
+    // 3. Expand graph relationships based on top candidate nodes
+    const topCandidates = [...mentionChunks, ...symbolResults.slice(0, 6), ...vectorResults.slice(0, 6)];
     const relationshipResults = this.relationshipSearch.expandRelationships(topCandidates);
 
     Logger.debug("retrieval", `Discovered ${relationshipResults.length} graph relationship expansions`);
 
-    // 3. For broad queries, pull in root entrypoint files & core models
+    // 4. For broad queries, pull in root entrypoint files & core models
     let broadContextChunks: RetrievedChunk[] = [];
-    if (isBroadQuery || symbolResults.length + vectorResults.length === 0) {
+    if ((isBroadQuery && mentionChunks.length === 0) || symbolResults.length + vectorResults.length === 0) {
       const allChunks = this.repoManager.getAllChunks(this.repoId);
       const entrypoints = allChunks.filter(c => {
         const p = (c.file_path || "").toLowerCase();
@@ -89,9 +101,9 @@ export class RetrievalEngine {
         }));
     }
 
-    // 4. Rank, deduplicate, and assemble budget
+    // 5. Rank, deduplicate, and assemble budget (Mentions ranked highest)
     let rankedContext = ContextRanker.rankAndAssemble(
-      [symbolResults, vectorResults, relationshipResults, broadContextChunks],
+      [mentionChunks, symbolResults, vectorResults, relationshipResults, broadContextChunks],
       maxCharacters
     );
 
