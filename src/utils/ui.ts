@@ -59,15 +59,11 @@ export class TerminalUI {
 
     const gitBranch = this.getGitBranch(projectRoot);
     const branchInfo = gitBranch ? ` (${gitBranch})` : "";
-    const chatModel = config?.chatModel || "Gemini 3.1 Flash Lite";
-    const provider = config?.embeddingProvider || "voyage";
-    const embedModel = config?.embeddingModel || "voyage-code-2";
-
     console.log();
-    // Multi-colored pixel icon + metadata block (Antigravity CLI style)
+    // Multi-colored pixel icon + clean metadata block
     console.log(`  ${coral("▄▄")}${amber("▄▄")}      ${title("Codast CLI 0.1.1")}`);
     console.log(`  ${amber("██")}${emerald("██")}      ${textMuted(`Local Code Intelligence & REPL`)}`);
-    console.log(`  ${emerald("██")}${cyan("██")}      ${textMain(`${chatModel}`)} ${textMuted(`(${provider}: ${embedModel})`)}`);
+    console.log(`  ${emerald("██")}${cyan("██")}      ${textMain(`Neural AST & Semantic Index Active`)}`);
     console.log(`  ${blue("██")}${purple("██")}      ${textMuted(`${projectRoot}${branchInfo}`)}`);
     console.log(`  ${purple("▀▀")}${blue("▀▀")}`);
     console.log(`  ${rule("─────────────────────────────────────────────────────────────────────────────")}`);
@@ -140,10 +136,10 @@ export class TerminalUI {
   /**
    * Renders the bottom Antigravity status bar.
    */
-  static renderBottomBar(modelName: string = "Gemini 3.1 Flash"): void {
+  static renderBottomBar(status: string = "codast • ready"): void {
     const rule = chalk.hex("#3B4261");
     const left = chalk.hex("#676E95")("? for shortcuts");
-    const right = chalk.hex("#676E95")(`${modelName} • high`);
+    const right = chalk.hex("#676E95")(status);
     const width = 77;
     const padding = " ".repeat(Math.max(1, width - left.length - right.length));
 

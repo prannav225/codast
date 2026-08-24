@@ -113,7 +113,7 @@ export async function askCommand(question: string, options: { verbose?: boolean 
           }));
 
     TerminalUI.renderSources(resolvedSources, projectRoot);
-    TerminalUI.renderBottomBar(config.chatModel || "Gemini 3.1 Flash");
+    TerminalUI.renderBottomBar();
   } catch (error: any) {
     spinner.stop();
     console.log(chalk.red(`\n  ✖ Error: ${error.message || error}\n`));

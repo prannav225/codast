@@ -160,8 +160,7 @@ export async function chatCommand(): Promise<void> {
         console.log(`  ${chalk.hex("#EEFFFF")("AST Symbols:")}    ${chalk.hex("#C3E88D")(freshStats.symbolCount)}`);
         console.log(`  ${chalk.hex("#EEFFFF")("Call Edges:")}     ${chalk.hex("#C3E88D")(freshStats.relationshipCount)}`);
         console.log(`  ${chalk.hex("#EEFFFF")("Code Chunks:")}    ${chalk.hex("#C3E88D")(freshStats.chunkCount)}`);
-        console.log(`  ${chalk.hex("#EEFFFF")("Embedding:")}      ${chalk.hex("#89DDFF")(`${config.embeddingProvider || "voyage"}:${config.embeddingModel || "voyage-code-2"}`)}`);
-        console.log(`  ${chalk.hex("#EEFFFF")("Chat Model:")}     ${chalk.hex("#89DDFF")(config.chatModel || "gemini-3.1-flash-lite")}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Engine:")}         ${chalk.hex("#89DDFF")("Active & Ready")}`);
         console.log(`  ${rule("─────────────────────────────────────────")}\n`);
         continue;
       }
@@ -279,7 +278,7 @@ export async function chatCommand(): Promise<void> {
 
         // 6. Render Sources & Bottom Status Bar
         TerminalUI.renderSources(resolvedSources, projectRoot);
-        TerminalUI.renderBottomBar(config.chatModel || "Gemini 3.1 Flash");
+        TerminalUI.renderBottomBar();
       } catch (err: any) {
         spinner.stop();
         console.log(chalk.red(`\n  ✖ Error: ${err.message}\n`));
