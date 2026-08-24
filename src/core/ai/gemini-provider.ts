@@ -148,11 +148,9 @@ export class GeminiProvider implements AIService {
       try {
         const response = await this.client.models.generateContent({
           model: modelName,
-          contents: prompt,
+          contents: `${systemPrompt}\n\n${prompt}`,
           config: {
-            systemInstruction: systemPrompt,
-            temperature: 0.1,
-            responseMimeType: "application/json"
+            temperature: 0.1
           }
         });
 
@@ -160,18 +158,7 @@ export class GeminiProvider implements AIService {
         return this.parseStructuredAnswer(text);
       } catch (error: any) {
         lastError = error;
-        Logger.debug("gemini-provider", `Model ${modelName} returned error: ${error.message}. Attempting fallback model...`);
-
-        try {
-          const fallbackResponse = await this.client.models.generateContent({
-            model: modelName,
-            contents: `${systemPrompt}\n\n${prompt}`
-          });
-          const rawText = fallbackResponse.text || "";
-          return this.parseStructuredAnswer(rawText);
-        } catch {
-          // Continue to next model candidate
-        }
+        Logger.debug("gemini-provider", `Model ${modelName} returned error: ${error.message}. Attempting next candidate...`);
       }
     }
 
@@ -221,23 +208,7 @@ export class GeminiProvider implements AIService {
           }
         }
 
-        // Parse sources from the streamed markdown
-        const sources: CitationSource[] = [];
-        const citationRegex = /([a-zA-Z0-9_\-\/\\.]+\.[a-zA-Z0-9]+):(\d+)(?:-(\d+))?/g;
-        let match;
-        while ((match = citationRegex.exec(accumulatedText)) !== null) {
-          sources.push({
-            path: match[1],
-            startLine: parseInt(match[2], 10),
-            endLine: match[3] ? parseInt(match[3], 10) : parseInt(match[2], 10)
-          });
-        }
-
-        return {
-          answer: accumulatedText,
-          sources,
-          confidence: "high"
-        };
+        return this.parseStructuredAnswer(accumulatedText);
       } catch (error: any) {
         lastError = error;
         Logger.debug("gemini-provider", `Stream model ${modelName} failed: ${error.message}. Trying next candidate...`);
@@ -251,35 +222,40 @@ export class GeminiProvider implements AIService {
   }
 
   private parseStructuredAnswer(rawText: string): AIAnswerResponse {
-    const cleaned = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    let cleanText = rawText.trim();
 
-    try {
-      const parsed = JSON.parse(cleaned);
-      return {
-        answer: parsed.answer || rawText,
-        sources: Array.isArray(parsed.sources) ? parsed.sources : [],
-        confidence: parsed.confidence === "high" || parsed.confidence === "medium" || parsed.confidence === "low"
-          ? parsed.confidence
-          : "medium",
-        reasoningNotes: parsed.reasoningNotes
-      };
-    } catch {
-      const sources: CitationSource[] = [];
-      const citationRegex = /([a-zA-Z0-9_\-\/\\.]+\.[a-zA-Z0-9]+):(\d+)(?:-(\d+))?/g;
-      let match;
-      while ((match = citationRegex.exec(rawText)) !== null) {
-        sources.push({
-          path: match[1],
-          startLine: parseInt(match[2], 10),
-          endLine: match[3] ? parseInt(match[3], 10) : parseInt(match[2], 10)
-        });
+    // If the model wrapped in JSON (legacy or unexpected), extract the answer field
+    if (cleanText.startsWith("{") && cleanText.includes('"answer"')) {
+      try {
+        const parsed = JSON.parse(cleanText);
+        if (parsed.answer) {
+          cleanText = parsed.answer;
+        }
+      } catch {
+        // Regex fallback if JSON was malformed
+        const match = cleanText.match(/"answer"\s*:\s*"([\s\S]*?)(?:",\s*"sources"|"\s*\})/);
+        if (match && match[1]) {
+          cleanText = match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+        }
       }
-
-      return {
-        answer: rawText,
-        sources,
-        confidence: "medium"
-      };
     }
+
+    // Extract citations from markdown text
+    const sources: CitationSource[] = [];
+    const citationRegex = /([a-zA-Z0-9_\-\/\\.]+\.[a-zA-Z0-9]+):(\d+)(?:-(\d+))?/g;
+    let match;
+    while ((match = citationRegex.exec(cleanText)) !== null) {
+      sources.push({
+        path: match[1],
+        startLine: parseInt(match[2], 10),
+        endLine: match[3] ? parseInt(match[3], 10) : parseInt(match[2], 10)
+      });
+    }
+
+    return {
+      answer: cleanText,
+      sources,
+      confidence: "high"
+    };
   }
 }
