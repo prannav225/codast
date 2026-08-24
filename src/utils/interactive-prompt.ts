@@ -19,7 +19,7 @@ export class InteractivePrompt {
   }
 
   /**
-   * Prompts the user with live inline suggestion popup when typing `@` or `/`.
+   * Prompts the user with a smooth, in-place inline suggestion popup when typing `@` or `/`.
    */
   async ask(promptPrefix: string = "> "): Promise<string> {
     return new Promise((resolve) => {
@@ -27,13 +27,13 @@ export class InteractivePrompt {
       let cursor = 0;
       let selectedIndex = 0;
       let scrollOffset = 0;
+      let renderedLineCount = 0;
       const visibleCount = 5;
 
       let suggestions: SuggestionItem[] = [];
       let isSuggesting = false;
       let mentionStartIndex = -1;
 
-      // Put stdin into raw mode
       const isRaw = process.stdin.isRaw;
       if (process.stdin.setRawMode) {
         process.stdin.setRawMode(true);
@@ -42,7 +42,6 @@ export class InteractivePrompt {
       readline.emitKeypressEvents(process.stdin);
 
       const updateSuggestions = () => {
-        // Find if cursor is currently within an `@` or `/` token
         const textBeforeCursor = buffer.slice(0, cursor);
         const lastAt = textBeforeCursor.lastIndexOf("@");
         const lastSlash = textBeforeCursor.startsWith("/") && !textBeforeCursor.includes(" ") ? 0 : -1;
@@ -79,11 +78,16 @@ export class InteractivePrompt {
       };
 
       const render = () => {
-        // Clear down from prompt
-        process.stdout.write(`\r\x1b[K${promptPrefix}${buffer}`);
+        // 1. Move cursor back up to the prompt line from any previously rendered popup lines
+        if (renderedLineCount > 0) {
+          readline.moveCursor(process.stdout, 0, -renderedLineCount);
+        }
+        readline.cursorTo(process.stdout, 0);
+        readline.clearScreenDown(process.stdout);
 
-        // Save position of prompt cursor
-        process.stdout.write(`\x1b[s`);
+        // 2. Build output lines
+        const promptLine = `${promptPrefix}${buffer}`;
+        const outputLines: string[] = [promptLine];
 
         if (isSuggesting && suggestions.length > 0) {
           const rule = chalk.hex("#3B4261");
@@ -92,15 +96,15 @@ export class InteractivePrompt {
           const blue = chalk.hex("#82AAFF");
           const white = chalk.hex("#EEFFFF");
 
-          let popup = `\n  ${rule("─────────────────────────────────────────────────────────────────────────────")}\n`;
+          outputLines.push(`  ${rule("─────────────────────────────────────────────────────────────────────────────")}`);
 
           const total = suggestions.length;
           const visible = suggestions.slice(scrollOffset, scrollOffset + visibleCount);
 
           if (scrollOffset > 0) {
-            popup += `  ${dim(`↑ ${scrollOffset} more`)}\n`;
+            outputLines.push(`  ${dim(`↑ ${scrollOffset} more`)}`);
           } else {
-            popup += `\n`;
+            outputLines.push("");
           }
 
           visible.forEach((item, idx) => {
@@ -112,32 +116,34 @@ export class InteractivePrompt {
             const detailCol = item.detail.slice(0, 48);
 
             if (isSelected) {
-              popup += `  ${cyan(">")} ${blue.bold(nameCol)} ${white(typeCol)} ${dim(detailCol)}\n`;
+              outputLines.push(`  ${cyan(">")} ${blue.bold(nameCol)} ${white(typeCol)} ${dim(detailCol)}`);
             } else {
-              popup += `    ${white(nameCol)} ${dim(typeCol)} ${dim(detailCol)}\n`;
+              outputLines.push(`    ${white(nameCol)} ${dim(typeCol)} ${dim(detailCol)}`);
             }
           });
 
           const remainingBelow = total - (scrollOffset + visible.length);
           if (remainingBelow > 0) {
-            popup += `  ${dim(`↓ ${remainingBelow} more`)}\n`;
+            outputLines.push(`  ${dim(`↓ ${remainingBelow} more`)}`);
           } else {
-            popup += `\n`;
+            outputLines.push("");
           }
 
-          popup += `\n  ${cyan("↑/↓")} ${dim("Navigate")} ${dim("•")} ${cyan("enter")} ${dim("Select")} ${dim("•")} ${cyan("tab")} ${dim("Complete")}\n`;
-
-          process.stdout.write(popup);
-        } else {
-          // Clear any dangling menu lines below
-          process.stdout.write(`\n\x1b[J`);
+          outputLines.push(`  ${cyan("↑/↓")} ${dim("Navigate")} ${dim("•")} ${cyan("enter")} ${dim("Select")} ${dim("•")} ${cyan("tab")} ${dim("Complete")}`);
         }
 
-        // Restore prompt cursor position
-        process.stdout.write(`\x1b[u`);
-        // Position cursor at right spot in buffer
-        const promptLen = 2; // "> "
-        process.stdout.write(`\x1b[${promptLen + cursor + 1}G`);
+        // 3. Write all lines smoothly
+        process.stdout.write(outputLines.join("\n"));
+
+        // 4. Update rendered line count
+        renderedLineCount = outputLines.length - 1;
+
+        // 5. Move cursor back to the prompt line at the correct horizontal position
+        if (renderedLineCount > 0) {
+          readline.moveCursor(process.stdout, 0, -renderedLineCount);
+        }
+        const promptPlainLen = promptPrefix.replace(/\u001b\[[0-9;]*m/g, "").length;
+        readline.cursorTo(process.stdout, promptPlainLen + cursor);
       };
 
       const cleanup = () => {
@@ -145,29 +151,24 @@ export class InteractivePrompt {
         if (process.stdin.setRawMode) {
           process.stdin.setRawMode(isRaw || false);
         }
-        process.stdout.write(`\n\x1b[J`);
+        if (renderedLineCount > 0) {
+          readline.moveCursor(process.stdout, 0, -renderedLineCount);
+        }
+        readline.cursorTo(process.stdout, 0);
+        readline.clearScreenDown(process.stdout);
+        process.stdout.write(`${promptPrefix}${buffer}\n`);
       };
 
       const onKeypress = (str: string, key: any) => {
-        if (!key) {
-          if (str) {
-            buffer = buffer.slice(0, cursor) + str + buffer.slice(cursor);
-            cursor += str.length;
-            updateSuggestions();
-            render();
-          }
-          return;
-        }
-
         // Ctrl+C
-        if (key.ctrl && key.name === "c") {
+        if (key && key.ctrl && key.name === "c") {
           cleanup();
           console.log(chalk.hex("#89DDFF")("\n\n👋 Have a productive day, Sir!\n"));
           process.exit(0);
         }
 
         // Ctrl+D (EOF)
-        if (key.ctrl && key.name === "d") {
+        if (key && key.ctrl && key.name === "d") {
           cleanup();
           resolve("/exit");
           return;
@@ -175,7 +176,7 @@ export class InteractivePrompt {
 
         // Arrow Navigation in Suggestion Menu
         if (isSuggesting && suggestions.length > 0) {
-          if (key.name === "up") {
+          if (key && key.name === "up") {
             if (selectedIndex > 0) {
               selectedIndex--;
               if (selectedIndex < scrollOffset) {
@@ -186,7 +187,7 @@ export class InteractivePrompt {
             return;
           }
 
-          if (key.name === "down") {
+          if (key && key.name === "down") {
             if (selectedIndex < suggestions.length - 1) {
               selectedIndex++;
               if (selectedIndex >= scrollOffset + visibleCount) {
@@ -197,7 +198,7 @@ export class InteractivePrompt {
             return;
           }
 
-          if (key.name === "tab" || (key.name === "return" && isSuggesting)) {
+          if (key && (key.name === "tab" || key.name === "return")) {
             const chosen = suggestions[selectedIndex];
             if (chosen) {
               const beforeMention = buffer.slice(0, mentionStartIndex);
@@ -212,7 +213,7 @@ export class InteractivePrompt {
             }
           }
 
-          if (key.name === "escape") {
+          if (key && key.name === "escape") {
             isSuggesting = false;
             suggestions = [];
             render();
@@ -221,14 +222,13 @@ export class InteractivePrompt {
         }
 
         // Standard Navigation & Editing
-        if (key.name === "return") {
+        if (key && key.name === "return") {
           cleanup();
-          process.stdout.write("\n");
           resolve(buffer);
           return;
         }
 
-        if (key.name === "backspace") {
+        if (key && key.name === "backspace") {
           if (cursor > 0) {
             buffer = buffer.slice(0, cursor - 1) + buffer.slice(cursor);
             cursor--;
@@ -238,7 +238,7 @@ export class InteractivePrompt {
           return;
         }
 
-        if (key.name === "delete") {
+        if (key && key.name === "delete") {
           if (cursor < buffer.length) {
             buffer = buffer.slice(0, cursor) + buffer.slice(cursor + 1);
             updateSuggestions();
@@ -247,7 +247,7 @@ export class InteractivePrompt {
           return;
         }
 
-        if (key.name === "left") {
+        if (key && key.name === "left") {
           if (cursor > 0) {
             cursor--;
             updateSuggestions();
@@ -256,7 +256,7 @@ export class InteractivePrompt {
           return;
         }
 
-        if (key.name === "right") {
+        if (key && key.name === "right") {
           if (cursor < buffer.length) {
             cursor++;
             updateSuggestions();
@@ -265,14 +265,14 @@ export class InteractivePrompt {
           return;
         }
 
-        if (key.name === "home") {
+        if (key && key.name === "home") {
           cursor = 0;
           updateSuggestions();
           render();
           return;
         }
 
-        if (key.name === "end") {
+        if (key && key.name === "end") {
           cursor = buffer.length;
           updateSuggestions();
           render();
@@ -280,7 +280,7 @@ export class InteractivePrompt {
         }
 
         // Printable input
-        if (str && !key.ctrl && !key.meta) {
+        if (str && (!key || (!key.ctrl && !key.meta))) {
           buffer = buffer.slice(0, cursor) + str + buffer.slice(cursor);
           cursor += str.length;
           updateSuggestions();
