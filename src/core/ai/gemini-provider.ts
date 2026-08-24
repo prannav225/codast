@@ -178,6 +178,62 @@ export class GeminiProvider implements AIService {
     throw lastError || new Error("Failed to generate answer across all available Gemini model candidates");
   }
 
+  /**
+   * Streams grounded answer in real-time chunk-by-chunk using Gemini streaming.
+   */
+  async generateAnswerStream(
+    question: string,
+    assembledContext: string,
+    onChunk: (textChunk: string) => void,
+    options: { systemInstruction?: string; model?: string } = {}
+  ): Promise<AIAnswerResponse> {
+    const targetModel = options.model || this.chatModel;
+    const systemPrompt = options.systemInstruction || ANSWER_SYSTEM_PROMPT;
+    const prompt = buildUserPrompt(question, assembledContext);
+
+    const modelCandidates = [
+      targetModel,
+      "gemini-3.1-flash-lite",
+      "gemini-3.5-flash-lite",
+      "gemini-3.6-flash",
+      "gemini-3.7-flash"
+    ];
+
+    const uniqueModels = Array.from(new Set(modelCandidates));
+    let lastError: any = null;
+
+    for (const modelName of uniqueModels) {
+      try {
+        const stream = await this.client.models.generateContentStream({
+          model: modelName,
+          contents: `${systemPrompt}\n\n${prompt}`,
+          config: {
+            temperature: 0.1
+          }
+        });
+
+        let accumulatedText = "";
+        for await (const chunk of stream) {
+          const chunkText = chunk.text || "";
+          if (chunkText) {
+            accumulatedText += chunkText;
+            onChunk(chunkText);
+          }
+        }
+
+        return this.parseStructuredAnswer(accumulatedText);
+      } catch (error: any) {
+        lastError = error;
+        Logger.debug("gemini-provider", `Stream model ${modelName} failed: ${error.message}. Trying next candidate...`);
+      }
+    }
+
+    // Fallback to non-streaming if stream encounters an issue
+    const fallback = await this.generateAnswer(question, assembledContext, options);
+    onChunk(fallback.answer);
+    return fallback;
+  }
+
   private parseStructuredAnswer(rawText: string): AIAnswerResponse {
     const cleaned = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 

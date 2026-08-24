@@ -8,8 +8,9 @@ import { LanceVectorStore } from "../../storage/vector/lance-store.js";
 import { GeminiProvider } from "../../core/ai/gemini-provider.js";
 import { createEmbeddingProvider } from "../../core/ai/ai-service.js";
 import { RetrievalEngine } from "../../core/retrieval/retrieval-engine.js";
+import { TerminalUI } from "../../utils/ui.js";
 import { Logger } from "../../utils/logger.js";
-import { NotInitializedError, NotIndexedError, MissingApiKeyError } from "../../utils/errors.js";
+import { NotInitializedError, MissingApiKeyError } from "../../utils/errors.js";
 
 export async function askCommand(question: string, options: { verbose?: boolean } = {}): Promise<void> {
   const cwd = process.cwd();
@@ -47,19 +48,16 @@ export async function askCommand(question: string, options: { verbose?: boolean 
   const stats = repoManager.getProjectStats(repo.id);
 
   if (repo.status !== "INDEXED" || stats.chunkCount === 0) {
-    Logger.error("This repository has not been indexed yet or previous indexing was incomplete.\nPlease run:\n  codebase-ai index --force");
+    Logger.error("This repository has not been indexed yet.\nPlease run:\n  codast index --force");
     process.exitCode = 1;
     return;
   }
 
-  Logger.heading("Codebase AI Query");
-  console.log(`Question: ${chalk.bold.cyan(`"${question}"`)}\n`);
+  const dim = chalk.hex("#475569");
+  console.log(`\n  ${dim("╭─")} ${chalk.hex("#818CF8").bold("◈ Question:")} ${chalk.hex("#F8FAFC").bold(`"${question}"`)}`);
 
-  const spinner = ora({
-    text: "Searching codebase index (symbols, vectors, relationships)...",
-    color: "cyan",
-    discardStdin: false
-  }).start();
+  const retrievalStart = Date.now();
+  TerminalUI.renderPipelineStep(1, 3, "Resolving AST Symbols & Call Graphs", "Querying local SQLite schema...");
 
   try {
     const embeddingProvider = createEmbeddingProvider(projectRoot);
@@ -72,55 +70,46 @@ export async function askCommand(question: string, options: { verbose?: boolean 
 
     const retrievalEngine = new RetrievalEngine(db, repo.id, vectorStore, embeddingProvider);
     const context = await retrievalEngine.retrieveContext(question);
+    const retrievalDurationMs = Date.now() - retrievalStart;
+
+    TerminalUI.renderPipelineStep(2, 3, "LanceDB Semantic Vector Ranking", `${context.chunks.length} candidate code chunks`, true);
+    TerminalUI.renderPipelineStep(3, 3, "Multi-Hop Relational Context Assembly", `${context.totalChunksCount} chunks (${context.tokenEstimate} estimated tokens)`, true);
 
     if (context.totalChunksCount === 0) {
-      spinner.warn(chalk.yellow("No relevant code context found for your question."));
+      console.log(chalk.yellow("\n  ⚠ No relevant code matches found for your question.\n"));
       return;
     }
 
-    if (options.verbose) {
-      spinner.stop();
-      console.log(chalk.dim(`\n[verbose] Retrieved ${context.totalChunksCount} chunks (${context.totalCharacters} characters):`));
-      for (const chunk of context.chunks) {
-        console.log(chalk.dim(`  • [${chunk.retrievalSource}] ${chunk.filePath}:${chunk.startLine}-${chunk.endLine} (${chunk.symbolName})`));
+    console.log(`\n  ${chalk.hex("#818CF8").bold("◈ Answer:")}\n`);
+
+    const streamStart = Date.now();
+    let accumulatedText = "";
+
+    const result = await aiProvider.generateAnswerStream(
+      question,
+      context.assembledContextText,
+      (chunk: string) => {
+        process.stdout.write(chunk);
+        accumulatedText += chunk;
       }
-      console.log();
-      spinner.start("Synthesizing grounded answer with Gemini...");
-    } else {
-      spinner.text = `Synthesizing answer from ${context.totalChunksCount} codebase evidence sources...`;
-    }
+    );
 
-    const result = await aiProvider.generateAnswer(question, context.assembledContextText);
-    spinner.stop();
-
-    console.log(result.answer);
+    const streamDurationMs = Date.now() - streamStart;
     console.log();
 
-    // Render source citations
-    if (result.sources && result.sources.length > 0) {
-      console.log(chalk.bold.green("Sources:"));
-      const uniqueSources = new Map<string, { startLine: number; endLine: number }>();
-      for (const s of result.sources) {
-        const key = `${s.path}:${s.startLine}-${s.endLine}`;
-        if (!uniqueSources.has(key)) {
-          uniqueSources.set(key, { startLine: s.startLine, endLine: s.endLine });
-          console.log(`  ${chalk.cyan(s.path)}${chalk.dim(`:${s.startLine}-${s.endLine}`)}`);
-        }
-      }
-      console.log();
-    } else if (context.chunks.length > 0) {
-      console.log(chalk.bold.green("Sources:"));
-      for (const chunk of context.chunks.slice(0, 4)) {
-        console.log(`  ${chalk.cyan(chunk.filePath)}${chalk.dim(`:${chunk.startLine}-${chunk.endLine}`)}`);
-      }
-      console.log();
-    }
+    const resolvedSources =
+      result.sources && result.sources.length > 0
+        ? result.sources
+        : context.chunks.slice(0, 5).map(c => ({
+            path: c.filePath,
+            startLine: c.startLine,
+            endLine: c.endLine
+          }));
+
+    TerminalUI.renderSources(resolvedSources, projectRoot);
+    TerminalUI.renderLatencyFooter(retrievalDurationMs, streamDurationMs, resolvedSources.length);
   } catch (error: any) {
-    spinner.fail(chalk.red("Failed to generate answer"));
-    Logger.error(error.message || "An error occurred while answering your question.");
-    if (Logger.isVerbose() && error.stack) {
-      console.error(error.stack);
-    }
+    console.log(chalk.red(`\n  ✖ Error: ${error.message || error}\n`));
     process.exitCode = 1;
   }
 }

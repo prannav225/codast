@@ -31,7 +31,7 @@ export async function chatCommand(): Promise<void> {
 
   if (!geminiKey) {
     Logger.error(
-      "Gemini API key is not configured.\nPlease run:\n  cai config set api-key <YOUR_GEMINI_KEY>"
+      "Gemini API key is not configured.\nPlease run:\n  codast config set api-key <YOUR_GEMINI_KEY>"
     );
     process.exitCode = 1;
     return;
@@ -46,9 +46,10 @@ export async function chatCommand(): Promise<void> {
   // 2. Check if repository is indexed, auto-index if fresh
   let stats = repoManager.getProjectStats(repo.id);
   if (repo.status !== "INDEXED" || stats.chunkCount === 0) {
-    console.log(chalk.cyan(`\n⚡ Indexing repository ${chalk.bold(projectName)} before starting chat...\n`));
+    console.log(chalk.hex("#818CF8")(`\n⚡ Indexing repository ${chalk.bold(projectName)} before starting chat...\n`));
     const initSpinner = ora({
       text: "Scanning files, extracting AST symbols, and generating embeddings...",
+      color: "blue",
       discardStdin: false
     }).start();
 
@@ -68,11 +69,16 @@ export async function chatCommand(): Promise<void> {
   }
 
   // 3. Render Header Banner
-  TerminalUI.renderBanner(projectName, {
-    files: stats.fileCount,
-    symbols: stats.symbolCount,
-    chunks: stats.chunkCount
-  });
+  TerminalUI.renderBanner(
+    projectName,
+    {
+      files: stats.fileCount,
+      symbols: stats.symbolCount,
+      chunks: stats.chunkCount
+    },
+    config,
+    projectRoot
+  );
 
   // 4. Initialize AI services
   const embeddingProvider = createEmbeddingProvider(projectRoot);
@@ -90,13 +96,13 @@ export async function chatCommand(): Promise<void> {
 
   // Handle Ctrl+C gracefully
   rl.on("SIGINT", () => {
-    console.log(chalk.hex("#00E5FF")("\n\n👋 Have a productive day, Sir!\n"));
+    console.log(chalk.hex("#818CF8")("\n\n👋 Have a productive day, Sir!\n"));
     process.exit(0);
   });
 
   try {
     while (true) {
-      const promptString = TerminalUI.getPrompt(projectName);
+      const promptString = TerminalUI.getPrompt(projectName, projectRoot);
       let answer: string;
 
       try {
@@ -117,7 +123,7 @@ export async function chatCommand(): Promise<void> {
       const lower = query.toLowerCase();
 
       if (lower === "/exit" || lower === "/quit" || lower === "exit" || lower === "quit") {
-        console.log(chalk.hex("#00E5FF")("\n👋 Have a productive day, Sir!\n"));
+        console.log(chalk.hex("#818CF8")("\n👋 Have a productive day, Sir!\n"));
         break;
       }
 
@@ -128,35 +134,50 @@ export async function chatCommand(): Promise<void> {
 
       if (lower === "/clear") {
         const freshStats = repoManager.getProjectStats(repo.id);
-        TerminalUI.renderBanner(projectName, {
-          files: freshStats.fileCount,
-          symbols: freshStats.symbolCount,
-          chunks: freshStats.chunkCount
-        });
+        TerminalUI.renderBanner(
+          projectName,
+          {
+            files: freshStats.fileCount,
+            symbols: freshStats.symbolCount,
+            chunks: freshStats.chunkCount
+          },
+          config,
+          projectRoot
+        );
         continue;
       }
 
-      if (lower === "/status") {
+      if (lower === "/tree") {
+        const files = repoManager.getAllFiles(repo.id);
+        TerminalUI.renderFileTree(files.map(f => ({ path: f.path, lines: f.line_count })));
+        continue;
+      }
+
+      if (lower === "/status" || lower === "/stats") {
         const freshStats = repoManager.getProjectStats(repo.id);
-        console.log(`\n  ${chalk.bold("Repository:")}  ${chalk.cyan(projectName)}`);
-        console.log(`  ${chalk.bold("Path:")}        ${chalk.dim(projectRoot)}`);
-        console.log(`  ${chalk.bold("Files:")}       ${chalk.cyan(freshStats.fileCount)}`);
-        console.log(`  ${chalk.bold("Symbols:")}     ${chalk.cyan(freshStats.symbolCount)}`);
-        console.log(`  ${chalk.bold("Relations:")}   ${chalk.cyan(freshStats.relationshipCount)}`);
-        console.log(`  ${chalk.bold("Chunks:")}      ${chalk.cyan(freshStats.chunkCount)}`);
-        console.log(`  ${chalk.bold("Provider:")}    ${chalk.dim(config.embeddingProvider || "voyage")}`);
-        console.log(`  ${chalk.bold("Chat Model:")}  ${chalk.dim(config.chatModel)}\n`);
+        const dim = chalk.hex("#475569");
+        const header = chalk.hex("#818CF8").bold("◈ Codebase Status & Metrics");
+        console.log(`\n  ${dim("╭─")} ${header} ${dim("─────────────────────────────────────────────────╮")}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("Repository:")}    ${chalk.hex("#F8FAFC")(projectName)}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("Root Path:")}     ${chalk.hex("#94A3B8")(projectRoot)}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("Source Files:")}  ${chalk.hex("#34D399").bold(freshStats.fileCount)}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("AST Symbols:")}   ${chalk.hex("#34D399").bold(freshStats.symbolCount)}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("Call Edges:")}    ${chalk.hex("#34D399").bold(freshStats.relationshipCount)}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("Code Chunks:")}   ${chalk.hex("#34D399").bold(freshStats.chunkCount)}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("Embed Provider:")}${chalk.hex("#93C5FD")(config.embeddingProvider || "voyage")}`);
+        console.log(`  ${dim("│")}  ${chalk.bold("Chat Model:")}    ${chalk.hex("#93C5FD")(config.chatModel)}`);
+        console.log(`  ${dim("╰──────────────────────────────────────────────────────────────────────────╯\n")}`);
         continue;
       }
 
       if (lower === "/files") {
         const files = repoManager.getAllFiles(repo.id);
-        console.log(chalk.bold.cyan(`\n  📁 Indexed Files (${files.length}):`));
+        console.log(chalk.bold.hex("#818CF8")(`\n  📁 Indexed Source Files (${files.length}):`));
         for (const f of files.slice(0, 30)) {
-          console.log(`    ${chalk.dim("•")} ${chalk.hex("#E2E8F0")(f.path)} ${chalk.dim(`(${f.line_count} lines)`)}`);
+          console.log(`    ${chalk.hex("#475569")("•")} ${chalk.hex("#E2E8F0")(f.path)} ${chalk.hex("#64748B")(`(${f.line_count} lines)`)}`);
         }
         if (files.length > 30) {
-          console.log(chalk.dim(`    ... and ${files.length - 30} more files`));
+          console.log(chalk.hex("#64748B")(`    ... and ${files.length - 30} more files`));
         }
         console.log();
         continue;
@@ -165,6 +186,7 @@ export async function chatCommand(): Promise<void> {
       if (lower === "/index" || lower === "/reindex") {
         const indexSpinner = ora({
           text: "Re-indexing codebase with AST analysis & embeddings...",
+          color: "blue",
           discardStdin: false
         }).start();
 
@@ -178,7 +200,7 @@ export async function chatCommand(): Promise<void> {
           });
           const freshStats = repoManager.getProjectStats(repo.id);
           indexSpinner.succeed(
-            chalk.green(
+            chalk.hex("#34D399")(
               `Re-indexed! Files: ${freshStats.fileCount}, Symbols: ${freshStats.symbolCount}, Chunks: ${freshStats.chunkCount}`
             )
           );
@@ -189,7 +211,7 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
-      if (lower === "/config") {
+      if (lower === "/config" || lower === "/model") {
         const voyageKey = ConfigManager.getVoyageApiKey(projectRoot);
         console.log(`\n  ${chalk.bold("Gemini Key:")}   ${geminiKey.slice(0, 4)}...${geminiKey.slice(-4)}`);
         console.log(`  ${chalk.bold("Voyage Key:")}   ${voyageKey ? `${voyageKey.slice(0, 4)}...${voyageKey.slice(-4)}` : chalk.yellow("Not set")}`);
@@ -199,45 +221,56 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
-      // Process Codebase Question
-      const searchSpinner = ora({
-        text: chalk.hex("#94A3B8")("Searching symbols, call graphs, and semantic vectors..."),
-        color: "blue",
-        discardStdin: false
-      }).start();
+      // Process Codebase Question with Live Stepper & Real-time Streaming
+      const retrievalStart = Date.now();
+      console.log();
+      TerminalUI.renderPipelineStep(1, 3, "Resolving AST Symbols & Call Graphs", "Querying local SQLite schema...");
 
       try {
         const context = await retrievalEngine.retrieveContext(query);
+        const retrievalDurationMs = Date.now() - retrievalStart;
+
+        TerminalUI.renderPipelineStep(2, 3, "LanceDB Semantic Vector Ranking", `${context.chunks.length} candidate code chunks`, true);
+        TerminalUI.renderPipelineStep(3, 3, "Multi-Hop Relational Context Assembly", `${context.totalChunksCount} chunks (${context.tokenEstimate} estimated tokens)`, true);
 
         if (context.totalChunksCount === 0) {
-          searchSpinner.warn(chalk.yellow("No direct code matches found for this query."));
-          console.log();
+          console.log(chalk.yellow("\n  ⚠ No relevant code matches found for this query in the index.\n"));
           continue;
         }
 
-        searchSpinner.text = chalk.dim(`Reasoning with ${context.totalChunksCount} codebase sources...`);
-        const result = await aiProvider.generateAnswer(query, context.assembledContextText);
-        searchSpinner.stop();
+        console.log(`\n  ${chalk.hex("#818CF8").bold("◈ Response:")}\n`);
 
-        // Render response
-        console.log(TerminalUI.formatMarkdown(result.answer));
+        const streamStart = Date.now();
+        let accumulatedRawAnswer = "";
+
+        // Stream answer tokens in real-time
+        const result = await aiProvider.generateAnswerStream(
+          query,
+          context.assembledContextText,
+          (tokenChunk: string) => {
+            process.stdout.write(tokenChunk);
+            accumulatedRawAnswer += tokenChunk;
+          }
+        );
+
+        const streamDurationMs = Date.now() - streamStart;
         console.log();
 
-        // Render citations
-        if (result.sources && result.sources.length > 0) {
-          TerminalUI.renderSources(result.sources);
-        } else if (context.chunks.length > 0) {
-          TerminalUI.renderSources(
-            context.chunks.slice(0, 4).map(c => ({
-              path: c.filePath,
-              startLine: c.startLine,
-              endLine: c.endLine
-            }))
-          );
-        }
+        // Resolve citations
+        const resolvedSources =
+          result.sources && result.sources.length > 0
+            ? result.sources
+            : context.chunks.slice(0, 5).map(c => ({
+                path: c.filePath,
+                startLine: c.startLine,
+                endLine: c.endLine
+              }));
+
+        // Render OSC-8 Clickable Sources & Performance Latency Footer
+        TerminalUI.renderSources(resolvedSources, projectRoot);
+        TerminalUI.renderLatencyFooter(retrievalDurationMs, streamDurationMs, resolvedSources.length);
       } catch (err: any) {
-        searchSpinner.fail(chalk.red("Failed to answer"));
-        console.log(chalk.red(`  ${err.message}\n`));
+        console.log(chalk.red(`\n  ✖ Error: ${err.message}\n`));
       }
     }
   } finally {

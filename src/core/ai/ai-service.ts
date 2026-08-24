@@ -24,6 +24,12 @@ export interface AIService {
     assembledContext: string,
     options?: { systemInstruction?: string; model?: string }
   ): Promise<AIAnswerResponse>;
+  generateAnswerStream?(
+    question: string,
+    assembledContext: string,
+    onChunk: (textChunk: string) => void,
+    options?: { systemInstruction?: string; model?: string }
+  ): Promise<AIAnswerResponse>;
 }
 
 export function createEmbeddingProvider(projectRoot: string): EmbeddingProvider {
