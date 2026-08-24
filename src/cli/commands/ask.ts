@@ -8,7 +8,7 @@ import { LanceVectorStore } from "../../storage/vector/lance-store.js";
 import { GeminiProvider } from "../../core/ai/gemini-provider.js";
 import { createEmbeddingProvider } from "../../core/ai/ai-service.js";
 import { RetrievalEngine } from "../../core/retrieval/retrieval-engine.js";
-import { TerminalUI } from "../../utils/ui.js";
+import { TerminalUI, PIXEL_SPINNER } from "../../utils/ui.js";
 import { Logger } from "../../utils/logger.js";
 import { NotInitializedError, MissingApiKeyError } from "../../utils/errors.js";
 
@@ -53,11 +53,14 @@ export async function askCommand(question: string, options: { verbose?: boolean 
     return;
   }
 
-  const dim = chalk.hex("#475569");
-  console.log(`\n  ${dim("╭─")} ${chalk.hex("#818CF8").bold("◈ Question:")} ${chalk.hex("#F8FAFC").bold(`"${question}"`)}`);
+  console.log(`\n  ${chalk.hex("#89DDFF").bold(">")} ${chalk.hex("#EEFFFF").bold(question)}\n`);
 
-  const retrievalStart = Date.now();
-  TerminalUI.renderPipelineStep(1, 3, "Resolving AST Symbols & Call Graphs", "Querying local SQLite schema...");
+  const startTime = Date.now();
+  const spinner = ora({
+    spinner: PIXEL_SPINNER,
+    text: chalk.hex("#EEFFFF")("Searching codebase & reasoning..."),
+    discardStdin: false
+  }).start();
 
   try {
     const embeddingProvider = createEmbeddingProvider(projectRoot);
@@ -70,31 +73,34 @@ export async function askCommand(question: string, options: { verbose?: boolean 
 
     const retrievalEngine = new RetrievalEngine(db, repo.id, vectorStore, embeddingProvider);
     const context = await retrievalEngine.retrieveContext(question);
-    const retrievalDurationMs = Date.now() - retrievalStart;
+    const durationSec = (Date.now() - startTime) / 1000;
 
-    TerminalUI.renderPipelineStep(2, 3, "LanceDB Semantic Vector Ranking", `${context.chunks.length} candidate code chunks`, true);
-    TerminalUI.renderPipelineStep(3, 3, "Multi-Hop Relational Context Assembly", `${context.totalChunksCount} chunks (${context.tokenEstimate} estimated tokens)`, true);
+    spinner.stop();
+
+    const uniquePaths = Array.from(new Set(context.chunks.map(c => c.filePath)));
+    for (const p of uniquePaths.slice(0, 5)) {
+      TerminalUI.renderToolAction("Read", `${projectRoot}/${p}`);
+    }
+
+    TerminalUI.renderThoughtHeader(durationSec, context.tokenEstimate);
 
     if (context.totalChunksCount === 0) {
-      console.log(chalk.yellow("\n  ⚠ No relevant code matches found for your question.\n"));
+      console.log(chalk.yellow("  No relevant code context found for your question.\n"));
       return;
     }
 
-    console.log(`\n  ${chalk.hex("#818CF8").bold("◈ Answer:")}\n`);
+    const genSpinner = ora({
+      spinner: PIXEL_SPINNER,
+      text: chalk.hex("#EEFFFF")("Synthesizing grounded answer..."),
+      discardStdin: false
+    }).start();
 
-    const streamStart = Date.now();
-    let accumulatedText = "";
+    const result = await aiProvider.generateAnswer(question, context.assembledContextText);
+    genSpinner.stop();
 
-    const result = await aiProvider.generateAnswerStream(
-      question,
-      context.assembledContextText,
-      (chunk: string) => {
-        process.stdout.write(chunk);
-        accumulatedText += chunk;
-      }
-    );
-
-    const streamDurationMs = Date.now() - streamStart;
+    // Render Clean Markdown (zero raw markdown tokens)
+    const formatted = TerminalUI.formatMarkdown(result.answer);
+    console.log(formatted);
     console.log();
 
     const resolvedSources =
@@ -107,8 +113,9 @@ export async function askCommand(question: string, options: { verbose?: boolean 
           }));
 
     TerminalUI.renderSources(resolvedSources, projectRoot);
-    TerminalUI.renderLatencyFooter(retrievalDurationMs, streamDurationMs, resolvedSources.length);
+    TerminalUI.renderBottomBar(config.chatModel || "Gemini 3.1 Flash");
   } catch (error: any) {
+    spinner.stop();
     console.log(chalk.red(`\n  ✖ Error: ${error.message || error}\n`));
     process.exitCode = 1;
   }

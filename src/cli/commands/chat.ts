@@ -11,7 +11,7 @@ import { GeminiProvider } from "../../core/ai/gemini-provider.js";
 import { createEmbeddingProvider } from "../../core/ai/ai-service.js";
 import { RetrievalEngine } from "../../core/retrieval/retrieval-engine.js";
 import { IndexingPipeline } from "../../core/indexing/pipeline.js";
-import { TerminalUI } from "../../utils/ui.js";
+import { TerminalUI, PIXEL_SPINNER } from "../../utils/ui.js";
 import { Logger } from "../../utils/logger.js";
 
 export async function chatCommand(): Promise<void> {
@@ -46,8 +46,8 @@ export async function chatCommand(): Promise<void> {
   if (repo.status !== "INDEXED" || stats.chunkCount === 0) {
     console.log(chalk.hex("#82AAFF")(`\n⚡ Indexing ${chalk.bold(projectName)}...\n`));
     const initSpinner = ora({
-      text: "Scanning files, extracting AST symbols, and generating embeddings...",
-      color: "cyan",
+      spinner: PIXEL_SPINNER,
+      text: chalk.hex("#EEFFFF")("Scanning files, extracting AST symbols, and generating embeddings..."),
       discardStdin: false
     }).start();
 
@@ -55,10 +55,10 @@ export async function chatCommand(): Promise<void> {
       const pipeline = new IndexingPipeline(projectRoot);
       await pipeline.run({
         onProgress: (stage, detail) => {
-          initSpinner.text = `${stage}${detail ? ` (${detail})` : ""}`;
+          initSpinner.text = chalk.hex("#EEFFFF")(`${stage}${detail ? ` (${detail})` : ""}`);
         }
       });
-      initSpinner.succeed(chalk.green("Repository indexed successfully!"));
+      initSpinner.succeed(chalk.hex("#C3E88D")("Repository indexed successfully!"));
       stats = repoManager.getProjectStats(repo.id);
     } catch (err: any) {
       initSpinner.warn(chalk.yellow(`Indexing partially completed: ${err.message}`));
@@ -181,8 +181,8 @@ export async function chatCommand(): Promise<void> {
 
       if (lower === "/index" || lower === "/reindex") {
         const indexSpinner = ora({
-          text: "Re-indexing codebase...",
-          color: "cyan",
+          spinner: PIXEL_SPINNER,
+          text: chalk.hex("#EEFFFF")("Re-indexing codebase..."),
           discardStdin: false
         }).start();
 
@@ -191,7 +191,7 @@ export async function chatCommand(): Promise<void> {
           await pipeline.run({
             force: true,
             onProgress: (stage, detail) => {
-              indexSpinner.text = `${stage}${detail ? ` (${detail})` : ""}`;
+              indexSpinner.text = chalk.hex("#EEFFFF")(`${stage}${detail ? ` (${detail})` : ""}`);
             }
           });
           const freshStats = repoManager.getProjectStats(repo.id);
@@ -217,21 +217,29 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
-      // Process Question (Antigravity CLI Style Execution)
+      // Process Question with Animated Pixel Spinner
       const startTime = Date.now();
       console.log();
+
+      const spinner = ora({
+        spinner: PIXEL_SPINNER,
+        text: chalk.hex("#EEFFFF")("Thinking & searching codebase..."),
+        discardStdin: false
+      }).start();
 
       try {
         const context = await retrievalEngine.retrieveContext(query);
         const durationSec = (Date.now() - startTime) / 1000;
 
-        // Render Antigravity-style tool action lines
+        spinner.stop();
+
+        // 1. Render Antigravity Tool Action Lines
         const uniquePaths = Array.from(new Set(context.chunks.map(c => c.filePath)));
         for (const p of uniquePaths.slice(0, 5)) {
           TerminalUI.renderToolAction("Read", `${projectRoot}/${p}`);
         }
 
-        // Render Thought Line
+        // 2. Render Thought Line
         TerminalUI.renderThoughtHeader(durationSec, context.tokenEstimate);
 
         if (context.totalChunksCount === 0) {
@@ -239,22 +247,27 @@ export async function chatCommand(): Promise<void> {
           continue;
         }
 
-        let accumulatedAnswer = "";
+        // 3. Synthesize Grounded Answer with Pixel Spinner
+        const genSpinner = ora({
+          spinner: PIXEL_SPINNER,
+          text: chalk.hex("#EEFFFF")("Synthesizing grounded answer..."),
+          discardStdin: false
+        }).start();
 
-        const result = await aiProvider.generateAnswerStream(
+        const result = await aiProvider.generateAnswer(
           query,
           context.assembledContextText,
-          (tokenChunk: string) => {
-            accumulatedAnswer += tokenChunk;
-          }
+          { systemInstruction: undefined }
         );
 
-        // Render formatted markdown with Antigravity headers & styling
-        const formatted = TerminalUI.formatMarkdown(result.answer || accumulatedAnswer);
+        genSpinner.stop();
+
+        // 4. Render Clean Markdown (NO raw asterisks or markdown syntax!)
+        const formatted = TerminalUI.formatMarkdown(result.answer);
         console.log(formatted);
         console.log();
 
-        // Resolve citations
+        // 5. Resolve citations
         const resolvedSources =
           result.sources && result.sources.length > 0
             ? result.sources
@@ -264,10 +277,11 @@ export async function chatCommand(): Promise<void> {
                 endLine: c.endLine
               }));
 
-        // Render Sources & Bottom Bar
+        // 6. Render Sources & Bottom Status Bar
         TerminalUI.renderSources(resolvedSources, projectRoot);
         TerminalUI.renderBottomBar(config.chatModel || "Gemini 3.1 Flash");
       } catch (err: any) {
+        spinner.stop();
         console.log(chalk.red(`\n  ✖ Error: ${err.message}\n`));
       }
     }

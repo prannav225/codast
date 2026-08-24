@@ -2,6 +2,18 @@ import fs from "node:fs";
 import path from "node:path";
 import chalk from "chalk";
 
+export const PIXEL_SPINNER = {
+  interval: 75,
+  frames: [
+    `${chalk.hex("#FF5370")("█")}${chalk.hex("#FFCB6B")("▀")}${chalk.hex("#C3E88D")("▄")}`,
+    `${chalk.hex("#FFCB6B")("█")}${chalk.hex("#C3E88D")("▀")}${chalk.hex("#89DDFF")("▄")}`,
+    `${chalk.hex("#C3E88D")("█")}${chalk.hex("#89DDFF")("▀")}${chalk.hex("#82AAFF")("▄")}`,
+    `${chalk.hex("#89DDFF")("█")}${chalk.hex("#82AAFF")("▀")}${chalk.hex("#C792EA")("▄")}`,
+    `${chalk.hex("#82AAFF")("█")}${chalk.hex("#C792EA")("▀")}${chalk.hex("#FF5370")("▄")}`,
+    `${chalk.hex("#C792EA")("█")}${chalk.hex("#FF5370")("▀")}${chalk.hex("#FFCB6B")("▄")}`
+  ]
+};
+
 export class TerminalUI {
   /**
    * Detects the current active git branch if in a git repository.
@@ -65,7 +77,7 @@ export class TerminalUI {
   /**
    * Renders the clean minimal Antigravity prompt.
    */
-  static getPrompt(projectName?: string, projectRoot: string = process.cwd()): string {
+  static getPrompt(): string {
     const arrow = chalk.hex("#89DDFF").bold(">");
     return `${arrow} `;
   }
@@ -84,9 +96,10 @@ export class TerminalUI {
   /**
    * Renders the Antigravity thought summary line.
    */
-  static renderThoughtHeader(durationSeconds: number, tokenCount: number): void {
+  static renderThoughtHeader(durationSeconds: number, tokenCount?: number): void {
     const arrow = chalk.hex("#676E95")("▸");
-    const thoughtText = chalk.hex("#676E95").italic(`Thought for ${durationSeconds.toFixed(1)}s, ${tokenCount.toLocaleString()} tokens`);
+    const tokens = tokenCount ? `, ${tokenCount.toLocaleString()} tokens` : "";
+    const thoughtText = chalk.hex("#676E95").italic(`Thought for ${durationSeconds.toFixed(1)}s${tokens}`);
     console.log(`\n  ${arrow} ${thoughtText}\n`);
   }
 
@@ -107,7 +120,7 @@ export class TerminalUI {
   ): void {
     if (sources.length === 0) return;
 
-    const header = chalk.hex("#C792EA").bold("Sources & Citations:");
+    const header = chalk.hex("#C792EA").bold("Sources & Evidence:");
     console.log(`\n  ${header}`);
     const seen = new Set<string>();
 
@@ -139,54 +152,129 @@ export class TerminalUI {
   }
 
   /**
-   * Full markdown formatter matching Antigravity CLI typography:
-   * - Electric purple headers with subtle underline rules
-   * - Clean bold terms
-   * - Inline code tags
-   * - Code blocks with line numbers and syntax framing
+   * Complete, clean terminal markdown renderer:
+   * Strips all raw markdown symbols (*, **, ###, ```) and replaces with beautiful ANSI typography.
    */
   static formatMarkdown(markdown: string): string {
-    let formatted = markdown;
+    const lines = markdown.split("\n");
+    const outputLines: string[] = [];
+    let inCodeBlock = false;
+    let codeLang = "";
+    let codeBuffer: string[] = [];
 
-    const h1 = chalk.hex("#C792EA").bold;
-    const h2 = chalk.hex("#82AAFF").bold;
-    const h3 = chalk.hex("#C792EA").bold;
-    const h3Underline = chalk.hex("#C792EA")("───────");
-    const codeInline = chalk.hex("#FFCB6B");
-    const bullet = chalk.hex("#89DDFF");
-    const numberBullet = chalk.hex("#C3E88D");
+    for (let i = 0; i < lines.length; i++) {
+      const rawLine = lines[i];
+      const trimmed = rawLine.trim();
 
-    // Headers with Antigravity underline style
-    formatted = formatted.replace(/^### (.*$)/gim, (_, text) => `\n  ${h3(`### ${text}`)}\n  ${h3Underline}`);
-    formatted = formatted.replace(/^## (.*$)/gim, (_, text) => `\n  ${h2(`## ${text}`)}`);
-    formatted = formatted.replace(/^# (.*$)/gim, (_, text) => `\n  ${h1(`# ${text}`)}`);
+      // 1. Code Block fences
+      if (trimmed.startsWith("```")) {
+        if (!inCodeBlock) {
+          inCodeBlock = true;
+          codeLang = trimmed.replace(/^```/, "").trim();
+          codeBuffer = [];
+        } else {
+          inCodeBlock = false;
+          const langUpper = codeLang ? codeLang.toUpperCase() : "CODE";
+          const border = chalk.hex("#3B4261");
+          const langBadge = chalk.hex("#EEFFFF").bgHex("#292D3E").bold(` ${langUpper} `);
 
-    // Bold & Inline Code
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, chalk.hex("#FFFFFF").bold("$1"));
-    formatted = formatted.replace(/`([^`]+)`/g, (_, code) => codeInline(code));
+          outputLines.push(`  ${border("╭─")} ${langBadge} ${border("──────────────────────────────────────────")}`);
+          codeBuffer.forEach((cLine, cIdx) => {
+            const lineNum = chalk.hex("#4F5676")(`${String(cIdx + 1).padStart(3, " ")} │ `);
+            outputLines.push(`  ${border("│")} ${lineNum}${chalk.hex("#EEFFFF")(cLine)}`);
+          });
+          outputLines.push(`  ${border("╰──────────────────────────────────────────────────")}`);
+          codeBuffer = [];
+        }
+        continue;
+      }
 
-    // Bullet points & numbering
-    formatted = formatted.replace(/^\s*[-*]\s+(.*$)/gim, `  ${bullet("•")} $1`);
-    formatted = formatted.replace(/^\s*(\d+)\.\s+(.*$)/gim, (_, num, text) => `  ${numberBullet(`${num}.`)} ${text}`);
+      if (inCodeBlock) {
+        codeBuffer.push(rawLine);
+        continue;
+      }
 
-    // Clean code blocks
-    formatted = formatted.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
-      const langUpper = lang ? lang.toUpperCase() : "CODE";
-      const langBadge = chalk.hex("#EEFFFF").bgHex("#292D3E").bold(` ${langUpper} `);
-      const border = chalk.hex("#3B4261");
+      // 2. Headers
+      if (rawLine.startsWith("### ")) {
+        const title = rawLine.replace(/^###\s+/, "").trim();
+        outputLines.push("");
+        outputLines.push(`  ${chalk.hex("#C792EA").bold(`### ${title}`)}`);
+        outputLines.push(`  ${chalk.hex("#C792EA")("───────")}`);
+        continue;
+      }
 
-      const codeLines = code.trim().split("\n");
-      const indented = codeLines
-        .map((line: string, idx: number) => {
-          const lineNum = chalk.hex("#4F5676")(`${String(idx + 1).padStart(3, " ")} │ `);
-          return `  ${border("│")} ${lineNum}${chalk.hex("#EEFFFF")(line)}`;
-        })
-        .join("\n");
+      if (rawLine.startsWith("## ")) {
+        const title = rawLine.replace(/^##\s+/, "").trim();
+        outputLines.push("");
+        outputLines.push(`  ${chalk.hex("#82AAFF").bold(`## ${title}`)}`);
+        continue;
+      }
 
-      return `\n  ${border("╭─")} ${langBadge} ${border("──────────────────────────────────────────")}\n${indented}\n  ${border("╰──────────────────────────────────────────────────")}\n`;
-    });
+      if (rawLine.startsWith("# ")) {
+        const title = rawLine.replace(/^#\s+/, "").trim();
+        outputLines.push("");
+        outputLines.push(`  ${chalk.hex("#C792EA").bold(`# ${title}`)}`);
+        continue;
+      }
 
-    return formatted;
+      // 3. Horizontal Dividers
+      if (trimmed === "---" || trimmed === "___" || trimmed === "***") {
+        outputLines.push(`  ${chalk.hex("#3B4261")("─────────────────────────────────────────────────────────────────────────────")}`);
+        continue;
+      }
+
+      // 4. Line Formatting: Lists, Numbers, Bold, Italic, Inline Code
+      let line = rawLine;
+
+      // Unordered list item: "- " or "* " or "  * "
+      const bulletMatch = line.match(/^(\s*)[*-]\s+(.*)$/);
+      if (bulletMatch) {
+        const indent = bulletMatch[1];
+        const content = this.cleanInlineMarkdown(bulletMatch[2]);
+        const bullet = chalk.hex("#89DDFF")("•");
+        outputLines.push(`  ${indent}${bullet} ${content}`);
+        continue;
+      }
+
+      // Ordered list item: "1. " or "  1. "
+      const numberMatch = line.match(/^(\s*)(\d+)\.\s+(.*)$/);
+      if (numberMatch) {
+        const indent = numberMatch[1];
+        const num = numberMatch[2];
+        const content = this.cleanInlineMarkdown(numberMatch[3]);
+        const numStyled = chalk.hex("#C3E88D")(`${num}.`);
+        outputLines.push(`  ${indent}${numStyled} ${content}`);
+        continue;
+      }
+
+      // Standard text line
+      outputLines.push(`  ${this.cleanInlineMarkdown(line)}`);
+    }
+
+    return outputLines.join("\n");
+  }
+
+  /**
+   * Cleans and ANSI-styles inline markdown elements (bold, italic, code, quotes).
+   */
+  private static cleanInlineMarkdown(text: string): string {
+    let res = text;
+
+    // Bold: **text** or __text__
+    res = res.replace(/\*\*(.*?)\*\*/g, (_, match) => chalk.bold.hex("#FFFFFF")(match));
+    res = res.replace(/__(.*?)__/g, (_, match) => chalk.bold.hex("#FFFFFF")(match));
+
+    // Italic: *text* or _text_ (single asterisk/underscore, not preceded/followed by asterisk)
+    res = res.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, (_, match) => chalk.italic.hex("#EEFFFF")(match));
+    res = res.replace(/(?<!_)_([^_]+)_(?!_)/g, (_, match) => chalk.italic.hex("#EEFFFF")(match));
+
+    // Inline Code: `code`
+    res = res.replace(/`([^`]+)`/g, (_, code) => chalk.hex("#FFCB6B").bgHex("#1E2233")(` ${code} `));
+
+    // Clean any orphaned list asterisks or artifacts at the start of text
+    res = res.replace(/^\*\s+/, "");
+
+    return res;
   }
 
   /**
