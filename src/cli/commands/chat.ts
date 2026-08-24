@@ -89,11 +89,61 @@ export async function chatCommand(): Promise<void> {
   const sessionHistory = new SessionHistory();
   const diagramGenerator = new DiagramGenerator(db, repo.id);
 
-  // 5. Interactive Readline Interface
+  // 5. Slash Commands & @-Mention Autocomplete Completer
+  const slashCommands = [
+    "/diagram",
+    "/tree",
+    "/status",
+    "/stats",
+    "/files",
+    "/index",
+    "/reindex",
+    "/reset",
+    "/config",
+    "/clear",
+    "/help",
+    "/exit",
+    "/quit"
+  ];
+
+  const completer = (line: string): [string[], string] => {
+    const words = line.split(/\s+/);
+    const lastWord = words[words.length - 1] || "";
+
+    // Slash command autocomplete
+    if (lastWord.startsWith("/")) {
+      const hits = slashCommands.filter(c => c.toLowerCase().startsWith(lastWord.toLowerCase()));
+      return [hits.length ? hits : slashCommands, lastWord];
+    }
+
+    // @ File & Symbol Mention autocomplete
+    if (lastWord.startsWith("@")) {
+      const query = lastWord.slice(1).toLowerCase();
+      try {
+        const files = repoManager.getAllFiles(repo.id);
+        const filePaths = files.map(f => `@${f.path}`);
+        const fileBases = files.map(f => `@${path.basename(f.path)}`);
+
+        const symbols = repoManager.findSymbolsByName(repo.id, "");
+        const symbolNames = symbols.map(s => `@${s.name}`);
+
+        const allCandidates = Array.from(new Set([...filePaths, ...fileBases, ...symbolNames]));
+        const hits = allCandidates.filter(c => c.toLowerCase().includes(query));
+        return [hits.slice(0, 30), lastWord];
+      } catch {
+        return [[], lastWord];
+      }
+    }
+
+    return [[], line];
+  };
+
+  // 6. Interactive Readline Interface with Native Tab Completion
   const rl = readline.createInterface({
     input,
     output,
-    terminal: true
+    terminal: true,
+    completer
   });
 
   rl.on("SIGINT", () => {
