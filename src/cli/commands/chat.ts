@@ -3,7 +3,6 @@ import { stdin as input, stdout as output } from "node:process";
 import path from "node:path";
 import chalk from "chalk";
 import ora from "ora";
-import Database from "better-sqlite3";
 import { ConfigManager } from "../../config/config-manager.js";
 import { SqliteDatabase } from "../../storage/sqlite/db.js";
 import { SqliteRepositoryManager } from "../../storage/sqlite/repositories.js";
@@ -14,7 +13,6 @@ import { RetrievalEngine } from "../../core/retrieval/retrieval-engine.js";
 import { IndexingPipeline } from "../../core/indexing/pipeline.js";
 import { TerminalUI } from "../../utils/ui.js";
 import { Logger } from "../../utils/logger.js";
-import { MissingApiKeyError } from "../../utils/errors.js";
 
 export async function chatCommand(): Promise<void> {
   const cwd = process.cwd();
@@ -43,13 +41,13 @@ export async function chatCommand(): Promise<void> {
   const repoManager = new SqliteRepositoryManager(db);
   const repo = repoManager.getOrCreateRepository(projectRoot, projectName);
 
-  // 2. Check if repository is indexed, auto-index if fresh
+  // 2. Auto-index if not indexed
   let stats = repoManager.getProjectStats(repo.id);
   if (repo.status !== "INDEXED" || stats.chunkCount === 0) {
-    console.log(chalk.hex("#818CF8")(`\n⚡ Indexing repository ${chalk.bold(projectName)} before starting chat...\n`));
+    console.log(chalk.hex("#82AAFF")(`\n⚡ Indexing ${chalk.bold(projectName)}...\n`));
     const initSpinner = ora({
       text: "Scanning files, extracting AST symbols, and generating embeddings...",
-      color: "blue",
+      color: "cyan",
       discardStdin: false
     }).start();
 
@@ -68,7 +66,7 @@ export async function chatCommand(): Promise<void> {
     }
   }
 
-  // 3. Render Header Banner
+  // 3. Render Antigravity Pixel Header
   TerminalUI.renderBanner(
     projectName,
     {
@@ -87,28 +85,26 @@ export async function chatCommand(): Promise<void> {
   await vectorStore.initialize();
   const retrievalEngine = new RetrievalEngine(db, repo.id, vectorStore, embeddingProvider);
 
-  // 5. Start Interactive Readline Loop with robust stdin preservation
+  // 5. Interactive Readline Interface
   const rl = readline.createInterface({
     input,
     output,
     terminal: true
   });
 
-  // Handle Ctrl+C gracefully
   rl.on("SIGINT", () => {
-    console.log(chalk.hex("#818CF8")("\n\n👋 Have a productive day, Sir!\n"));
+    console.log(chalk.hex("#89DDFF")("\n\n👋 Have a productive day, Sir!\n"));
     process.exit(0);
   });
 
   try {
     while (true) {
-      const promptString = TerminalUI.getPrompt(projectName, projectRoot);
+      const promptString = TerminalUI.getPrompt();
       let answer: string;
 
       try {
         answer = await rl.question(promptString);
       } catch {
-        // EOF or stream closed
         break;
       }
 
@@ -123,11 +119,11 @@ export async function chatCommand(): Promise<void> {
       const lower = query.toLowerCase();
 
       if (lower === "/exit" || lower === "/quit" || lower === "exit" || lower === "quit") {
-        console.log(chalk.hex("#818CF8")("\n👋 Have a productive day, Sir!\n"));
+        console.log(chalk.hex("#89DDFF")("\n👋 Have a productive day, Sir!\n"));
         break;
       }
 
-      if (lower === "/help") {
+      if (lower === "/help" || lower === "?") {
         TerminalUI.renderHelp();
         continue;
       }
@@ -155,29 +151,29 @@ export async function chatCommand(): Promise<void> {
 
       if (lower === "/status" || lower === "/stats") {
         const freshStats = repoManager.getProjectStats(repo.id);
-        const dim = chalk.hex("#475569");
-        const header = chalk.hex("#818CF8").bold("◈ Codebase Status & Metrics");
-        console.log(`\n  ${dim("╭─")} ${header} ${dim("─────────────────────────────────────────────────╮")}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("Repository:")}    ${chalk.hex("#F8FAFC")(projectName)}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("Root Path:")}     ${chalk.hex("#94A3B8")(projectRoot)}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("Source Files:")}  ${chalk.hex("#34D399").bold(freshStats.fileCount)}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("AST Symbols:")}   ${chalk.hex("#34D399").bold(freshStats.symbolCount)}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("Call Edges:")}    ${chalk.hex("#34D399").bold(freshStats.relationshipCount)}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("Code Chunks:")}   ${chalk.hex("#34D399").bold(freshStats.chunkCount)}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("Embed Provider:")}${chalk.hex("#93C5FD")(config.embeddingProvider || "voyage")}`);
-        console.log(`  ${dim("│")}  ${chalk.bold("Chat Model:")}    ${chalk.hex("#93C5FD")(config.chatModel)}`);
-        console.log(`  ${dim("╰──────────────────────────────────────────────────────────────────────────╯\n")}`);
+        const rule = chalk.hex("#3B4261");
+        console.log(`\n  ${chalk.hex("#82AAFF").bold("Codast Repository Status:")}`);
+        console.log(`  ${rule("─────────────────────────────────────────")}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Repository:")}     ${projectName}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Root Path:")}      ${chalk.hex("#676E95")(projectRoot)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Source Files:")}   ${chalk.hex("#C3E88D")(freshStats.fileCount)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("AST Symbols:")}    ${chalk.hex("#C3E88D")(freshStats.symbolCount)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Call Edges:")}     ${chalk.hex("#C3E88D")(freshStats.relationshipCount)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Code Chunks:")}    ${chalk.hex("#C3E88D")(freshStats.chunkCount)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Embedding:")}      ${chalk.hex("#89DDFF")(`${config.embeddingProvider || "voyage"}:${config.embeddingModel || "voyage-code-2"}`)}`);
+        console.log(`  ${chalk.hex("#EEFFFF")("Chat Model:")}     ${chalk.hex("#89DDFF")(config.chatModel || "gemini-3.1-flash-lite")}`);
+        console.log(`  ${rule("─────────────────────────────────────────")}\n`);
         continue;
       }
 
       if (lower === "/files") {
         const files = repoManager.getAllFiles(repo.id);
-        console.log(chalk.bold.hex("#818CF8")(`\n  📁 Indexed Source Files (${files.length}):`));
+        console.log(chalk.bold.hex("#82AAFF")(`\n  Indexed Files (${files.length}):`));
         for (const f of files.slice(0, 30)) {
-          console.log(`    ${chalk.hex("#475569")("•")} ${chalk.hex("#E2E8F0")(f.path)} ${chalk.hex("#64748B")(`(${f.line_count} lines)`)}`);
+          console.log(`    ${chalk.hex("#FFCB6B")("●")} ${chalk.hex("#EEFFFF")(f.path)} ${chalk.hex("#676E95")(`(${f.line_count} lines)`)}`);
         }
         if (files.length > 30) {
-          console.log(chalk.hex("#64748B")(`    ... and ${files.length - 30} more files`));
+          console.log(chalk.hex("#676E95")(`    ... and ${files.length - 30} more files`));
         }
         console.log();
         continue;
@@ -185,8 +181,8 @@ export async function chatCommand(): Promise<void> {
 
       if (lower === "/index" || lower === "/reindex") {
         const indexSpinner = ora({
-          text: "Re-indexing codebase with AST analysis & embeddings...",
-          color: "blue",
+          text: "Re-indexing codebase...",
+          color: "cyan",
           discardStdin: false
         }).start();
 
@@ -200,7 +196,7 @@ export async function chatCommand(): Promise<void> {
           });
           const freshStats = repoManager.getProjectStats(repo.id);
           indexSpinner.succeed(
-            chalk.hex("#34D399")(
+            chalk.hex("#C3E88D")(
               `Re-indexed! Files: ${freshStats.fileCount}, Symbols: ${freshStats.symbolCount}, Chunks: ${freshStats.chunkCount}`
             )
           );
@@ -221,39 +217,41 @@ export async function chatCommand(): Promise<void> {
         continue;
       }
 
-      // Process Codebase Question with Live Stepper & Real-time Streaming
-      const retrievalStart = Date.now();
+      // Process Question (Antigravity CLI Style Execution)
+      const startTime = Date.now();
       console.log();
-      TerminalUI.renderPipelineStep(1, 3, "Resolving AST Symbols & Call Graphs", "Querying local SQLite schema...");
 
       try {
         const context = await retrievalEngine.retrieveContext(query);
-        const retrievalDurationMs = Date.now() - retrievalStart;
+        const durationSec = (Date.now() - startTime) / 1000;
 
-        TerminalUI.renderPipelineStep(2, 3, "LanceDB Semantic Vector Ranking", `${context.chunks.length} candidate code chunks`, true);
-        TerminalUI.renderPipelineStep(3, 3, "Multi-Hop Relational Context Assembly", `${context.totalChunksCount} chunks (${context.tokenEstimate} estimated tokens)`, true);
+        // Render Antigravity-style tool action lines
+        const uniquePaths = Array.from(new Set(context.chunks.map(c => c.filePath)));
+        for (const p of uniquePaths.slice(0, 5)) {
+          TerminalUI.renderToolAction("Read", `${projectRoot}/${p}`);
+        }
+
+        // Render Thought Line
+        TerminalUI.renderThoughtHeader(durationSec, context.tokenEstimate);
 
         if (context.totalChunksCount === 0) {
-          console.log(chalk.yellow("\n  ⚠ No relevant code matches found for this query in the index.\n"));
+          console.log(chalk.yellow("  No relevant code context found for this query in the index.\n"));
           continue;
         }
 
-        console.log(`\n  ${chalk.hex("#818CF8").bold("◈ Response:")}\n`);
+        let accumulatedAnswer = "";
 
-        const streamStart = Date.now();
-        let accumulatedRawAnswer = "";
-
-        // Stream answer tokens in real-time
         const result = await aiProvider.generateAnswerStream(
           query,
           context.assembledContextText,
           (tokenChunk: string) => {
-            process.stdout.write(tokenChunk);
-            accumulatedRawAnswer += tokenChunk;
+            accumulatedAnswer += tokenChunk;
           }
         );
 
-        const streamDurationMs = Date.now() - streamStart;
+        // Render formatted markdown with Antigravity headers & styling
+        const formatted = TerminalUI.formatMarkdown(result.answer || accumulatedAnswer);
+        console.log(formatted);
         console.log();
 
         // Resolve citations
@@ -266,9 +264,9 @@ export async function chatCommand(): Promise<void> {
                 endLine: c.endLine
               }));
 
-        // Render OSC-8 Clickable Sources & Performance Latency Footer
+        // Render Sources & Bottom Bar
         TerminalUI.renderSources(resolvedSources, projectRoot);
-        TerminalUI.renderLatencyFooter(retrievalDurationMs, streamDurationMs, resolvedSources.length);
+        TerminalUI.renderBottomBar(config.chatModel || "Gemini 3.1 Flash");
       } catch (err: any) {
         console.log(chalk.red(`\n  ✖ Error: ${err.message}\n`));
       }
