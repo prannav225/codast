@@ -1,5 +1,3 @@
-import readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
 import path from "node:path";
 import chalk from "chalk";
 import ora from "ora";
@@ -12,6 +10,7 @@ import { RetrievalEngine } from "../../core/retrieval/retrieval-engine.js";
 import { IndexingPipeline } from "../../core/indexing/pipeline.js";
 import { SessionHistory } from "../../core/conversation/session-history.js";
 import { DiagramGenerator } from "../../core/analysis/diagram-generator.js";
+import { InteractivePrompt, type SuggestionItem } from "../../utils/interactive-prompt.js";
 import { TerminalUI, PIXEL_SPINNER } from "../../utils/ui.js";
 import { Logger } from "../../utils/logger.js";
 
@@ -89,75 +88,81 @@ export async function chatCommand(): Promise<void> {
   const sessionHistory = new SessionHistory();
   const diagramGenerator = new DiagramGenerator(db, repo.id);
 
-  // 5. Slash Commands & @-Mention Autocomplete Completer
-  const slashCommands = [
-    "/diagram",
-    "/tree",
-    "/status",
-    "/stats",
-    "/files",
-    "/index",
-    "/reindex",
-    "/reset",
-    "/config",
-    "/clear",
-    "/help",
-    "/exit",
-    "/quit"
-  ];
+  // 5. Candidate Builder for Live @-Mention and Slash Command Popup Suggestions
+  const getCandidates = (): SuggestionItem[] => {
+    const items: SuggestionItem[] = [];
 
-  const completer = (line: string): [string[], string] => {
-    const words = line.split(/\s+/);
-    const lastWord = words[words.length - 1] || "";
+    try {
+      const files = repoManager.getAllFiles(repo.id);
+      const dirSet = new Set<string>();
 
-    // Slash command autocomplete
-    if (lastWord.startsWith("/")) {
-      const hits = slashCommands.filter(c => c.toLowerCase().startsWith(lastWord.toLowerCase()));
-      return [hits.length ? hits : slashCommands, lastWord];
-    }
+      // File & Directory Suggestions
+      for (const f of files) {
+        items.push({
+          name: path.basename(f.path),
+          type: "File",
+          detail: `${f.path} (${f.line_count} lines)`,
+          insertValue: `@${f.path}`
+        });
 
-    // @ File & Symbol Mention autocomplete
-    if (lastWord.startsWith("@")) {
-      const query = lastWord.slice(1).toLowerCase();
-      try {
-        const files = repoManager.getAllFiles(repo.id);
-        const filePaths = files.map(f => `@${f.path}`);
-        const fileBases = files.map(f => `@${path.basename(f.path)}`);
-
-        const symbols = repoManager.findSymbolsByName(repo.id, "");
-        const symbolNames = symbols.map(s => `@${s.name}`);
-
-        const allCandidates = Array.from(new Set([...filePaths, ...fileBases, ...symbolNames]));
-        const hits = allCandidates.filter(c => c.toLowerCase().includes(query));
-        return [hits.slice(0, 30), lastWord];
-      } catch {
-        return [[], lastWord];
+        const dir = path.dirname(f.path);
+        if (dir && dir !== "." && !dirSet.has(dir)) {
+          dirSet.add(dir);
+          items.push({
+            name: `${dir}/`,
+            type: "Directory",
+            detail: `${dir}/`,
+            insertValue: `@${dir}/`
+          });
+        }
       }
+
+      // AST Symbol Suggestions
+      const symbols = repoManager.findSymbolsByName(repo.id, "");
+      for (const s of symbols.slice(0, 60)) {
+        items.push({
+          name: s.name,
+          type: "Symbol",
+          detail: `${s.kind} in ${s.file_path || "source"} (line ${s.start_line})`,
+          insertValue: `@${s.name}`
+        });
+      }
+    } catch {}
+
+    // Slash Commands
+    const slashCommands: Array<{ cmd: string; desc: string }> = [
+      { cmd: "/diagram", desc: "Generate architecture & call-flow diagrams" },
+      { cmd: "/tree", desc: "View visual directory file tree" },
+      { cmd: "/status", desc: "View indexed files, symbols, chunks & models" },
+      { cmd: "/files", desc: "List indexed source files" },
+      { cmd: "/index", desc: "Re-scan and index codebase on the fly" },
+      { cmd: "/reset", desc: "Clear conversation memory" },
+      { cmd: "/config", desc: "View active API keys and model configurations" },
+      { cmd: "/clear", desc: "Clear terminal screen and reset history" },
+      { cmd: "/help", desc: "Show command reference" },
+      { cmd: "/exit", desc: "Exit the chat session" }
+    ];
+
+    for (const sc of slashCommands) {
+      items.push({
+        name: sc.cmd,
+        type: "Command",
+        detail: sc.desc,
+        insertValue: sc.cmd
+      });
     }
 
-    return [[], line];
+    return items;
   };
 
-  // 6. Interactive Readline Interface with Native Tab Completion
-  const rl = readline.createInterface({
-    input,
-    output,
-    terminal: true,
-    completer
-  });
-
-  rl.on("SIGINT", () => {
-    console.log(chalk.hex("#89DDFF")("\n\n👋 Have a productive day, Sir!\n"));
-    process.exit(0);
-  });
+  const interactivePrompt = new InteractivePrompt(projectRoot, getCandidates);
 
   try {
     while (true) {
-      const promptString = TerminalUI.getPrompt();
       let answer: string;
 
       try {
-        answer = await rl.question(promptString);
+        answer = await interactivePrompt.ask(TerminalUI.getPrompt());
       } catch {
         break;
       }
@@ -357,6 +362,6 @@ export async function chatCommand(): Promise<void> {
       }
     }
   } finally {
-    rl.close();
+    // Session end
   }
 }
