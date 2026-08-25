@@ -20,7 +20,7 @@ export const HeroCockpit: React.FC = () => {
   const installCommands = {
     npm: 'npm install -g @pra9v/kodast',
     npx: 'npx @pra9v/kodast',
-    curl: 'curl -fsSL https://raw.githubusercontent.com/prannav225/kodast/main/install.sh | bash'
+    curl: 'curl -fsSL https://raw.githubusercontent.com/prannav225/codast/main/install.sh | bash'
   };
 
   const handleCopy = () => {

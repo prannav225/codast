@@ -19,11 +19,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prannav225/kodast.git"
+    "url": "git+https://github.com/prannav225/codast.git"
   },
-  "homepage": "https://github.com/prannav225/kodast#readme",
+  "homepage": "https://github.com/prannav225/codast#readme",
   "bugs": {
-    "url": "https://github.com/prannav225/kodast/issues"
+    "url": "https://github.com/prannav225/codast/issues"
   },
   "scripts": {
     "build": "tsup",

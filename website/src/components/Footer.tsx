@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
             <a href="#bento" className="hover:text-white transition-colors">Superpowers</a>
             <a href="#polyglot-lab" className="hover:text-white transition-colors">AST Lab</a>
             <a href="#setup" className="hover:text-white transition-colors">Setup</a>
-            <a href="https://github.com/prannav225/kodast" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+            <a href="https://github.com/prannav225/codast" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
               GitHub <ExternalLink className="w-3 h-3" />
             </a>
             <a href="https://www.npmjs.com/package/@pra9v/kodast" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
