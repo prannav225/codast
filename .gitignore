@@ -11,6 +11,7 @@ coverage/
 
 # Local Storage & API Keys (CRITICAL)
 .codebase-ai/
+kai-brain.txt
 .env
 .env.*
 !.env.example
