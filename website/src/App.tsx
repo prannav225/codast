@@ -9,9 +9,9 @@ import { Footer } from './components/Footer';
 
 export const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#050609] text-[#EEFFFF] selection:bg-[#82AAFF]/30 selection:text-[#89DDFF]">
+    <div className="min-h-screen bg-[#000000] text-white selection:bg-white selection:text-black overflow-x-hidden">
       <Navbar />
-      <main>
+      <main className="overflow-x-hidden">
         <HeroCockpit />
         <BentoGrid />
         <PolyglotLab />

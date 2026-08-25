@@ -23,11 +23,10 @@
   h1, h2, h3, h4, .font-display, .font-pixel {
     font-family: 'Geist Pixel', 'Geist Mono', ui-monospace, monospace;
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: none;
     text-rendering: geometricPrecision;
-    font-feature-settings: "ss09" 1, "tnum" 1;
   }
 
   code, kbd, samp, pre, .font-mono {
@@ -52,6 +51,15 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #333333;
+}
+
+/* Utility to hide scrollbars while maintaining scrollability */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Vercel-Style Precision 1px Architectural Grid */

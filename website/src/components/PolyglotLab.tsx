@@ -126,38 +126,38 @@ CREATE TABLE users (
   };
 
   return (
-    <section id="polyglot-lab" className="py-20 bg-[#000000] text-white border-b border-white/[0.1] font-mono scroll-mt-16 text-left">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="polyglot-lab" className="py-16 sm:py-20 bg-[#000000] text-white border-b border-white/[0.1] font-mono scroll-mt-16 text-left">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
         {/* Blueprint Container */}
-        <div className="relative border border-white/[0.15] bg-[#000000] p-6 sm:p-12 mb-12">
+        <div className="relative border border-white/[0.15] bg-[#000000] p-4 sm:p-8 lg:p-12 mb-12">
           
           {/* Corner Crosshairs */}
-          <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 font-mono text-white text-lg select-none">+</div>
-          <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 font-mono text-white text-lg select-none">+</div>
-          <div className="absolute bottom-0 left-0 -translate-x-1/2 translate-y-1/2 font-mono text-white text-lg select-none">+</div>
-          <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 font-mono text-white text-lg select-none">+</div>
+          <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 font-mono text-white text-base sm:text-lg select-none">+</div>
+          <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 font-mono text-white text-base sm:text-lg select-none">+</div>
+          <div className="absolute bottom-0 left-0 -translate-x-1/2 translate-y-1/2 font-mono text-white text-base sm:text-lg select-none">+</div>
+          <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 font-mono text-white text-base sm:text-lg select-none">+</div>
 
           {/* Section Header */}
-          <div className="max-w-3xl mb-10">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#111111] text-[11px] text-[#888888] border border-white/10 mb-4">
+          <div className="max-w-3xl mb-8 sm:mb-10">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#111111] text-[10px] sm:text-[11px] text-[#888888] border border-white/10 mb-3 sm:mb-4">
               <span>03 // AST WORKBENCH</span>
             </div>
-            <h2 className="text-4xl sm:text-6xl font-pixel tracking-tight text-white mb-4">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-pixel tracking-tight text-white mb-3 sm:mb-4">
               Workbench.
             </h2>
-            <p className="text-sm sm:text-base text-[#888888] leading-relaxed">
+            <p className="text-xs sm:text-sm lg:text-base text-[#888888] leading-relaxed">
               Inspect how the AST parser extracts receiver methods, annotations, and dependency graphs across polyglot languages in sub-milliseconds.
             </p>
           </div>
 
-          {/* Language Selector Pills */}
-          <div className="flex items-center gap-2 flex-wrap mb-8">
+          {/* Language Selector Pills (Horizontal Scroll on Mobile) */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 sm:mb-8 no-scrollbar">
             {languages.map((l) => (
               <button
                 key={l.id}
                 onClick={() => setSelectedLang(l.id as any)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs border transition-all flex items-center gap-2 ${
+                className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs border transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 ${
                   selectedLang === l.id
                     ? 'bg-white text-black font-semibold border-white'
                     : 'bg-[#0A0A0A] text-[#888888] border-white/10 hover:border-white/30 hover:text-white'
@@ -173,7 +173,7 @@ CREATE TABLE users (
           <div className="grid grid-cols-1 lg:grid-cols-12 border border-white/[0.15] bg-[#0A0A0A] overflow-hidden">
             
             {/* Left: Code Editor Pane */}
-            <div className="lg:col-span-7 p-6 text-xs text-white border-b lg:border-b-0 lg:border-r border-white/[0.15] flex flex-col justify-between">
+            <div className="lg:col-span-7 p-4 sm:p-6 text-xs text-white border-b lg:border-b-0 lg:border-r border-white/[0.15] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4 text-[#888888]">
                   <div className="flex items-center gap-2">
@@ -181,24 +181,24 @@ CREATE TABLE users (
                   </div>
                   <span className="text-[10px] font-pixel">SOURCE CODE</span>
                 </div>
-                <pre className="text-[#EDEDED] leading-relaxed overflow-x-auto whitespace-pre font-mono">
+                <pre className="text-[#EDEDED] leading-relaxed overflow-x-auto whitespace-pre font-mono text-[11px] sm:text-xs">
                   <code>{snippets[selectedLang].code}</code>
                 </pre>
               </div>
 
-              <div className="pt-4 border-t border-white/[0.08] mt-6 text-[11px] text-[#666666] flex justify-between">
-                <span>Parser: ts-morph &amp; Polyglot Trees</span>
-                <span className="text-white">✔ Syntax Validated</span>
+              <div className="pt-4 border-t border-white/[0.08] mt-6 text-[10px] sm:text-[11px] text-[#666666] flex justify-between">
+                <span>Parser: Polyglot Trees</span>
+                <span className="text-white">✔ Validated</span>
               </div>
             </div>
 
             {/* Right: AST & Graph Inspector */}
-            <div className="lg:col-span-5 p-6 text-xs bg-[#000000] space-y-4 flex flex-col justify-between">
+            <div className="lg:col-span-5 p-4 sm:p-6 text-xs bg-[#000000] space-y-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] text-white">
                   <span className="font-bold flex items-center gap-2 text-xs font-pixel">
-                    <Layers className="w-3.5 h-3.5" />
-                    Extracted AST Nodes
+                    <Layers className="w-3.5 h-3.5 shrink-0" />
+                    <span>Extracted AST Nodes</span>
                   </span>
                   <span className="text-[10px] text-[#666666]">SQLite Schema</span>
                 </div>
@@ -206,14 +206,14 @@ CREATE TABLE users (
                 {/* Symbols */}
                 <div className="mt-4 space-y-2">
                   {snippets[selectedLang].symbols.map((sym, idx) => (
-                    <div key={idx} className="p-2.5 rounded bg-[#0A0A0A] border border-white/10 flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] font-pixel text-black bg-white px-1.5 py-0.5 rounded mr-2">
+                    <div key={idx} className="p-2 sm:p-2.5 rounded bg-[#0A0A0A] border border-white/10 flex items-center justify-between gap-2">
+                      <div className="truncate min-w-0">
+                        <span className="text-[9px] sm:text-[10px] font-pixel text-black bg-white px-1.5 py-0.5 rounded mr-2 shrink-0">
                           {sym.type}
                         </span>
-                        <span className="text-white font-semibold">{sym.name}</span>
+                        <span className="text-white font-semibold truncate text-[11px] sm:text-xs">{sym.name}</span>
                       </div>
-                      <span className="text-[10px] text-[#666666]">L{sym.lines}</span>
+                      <span className="text-[10px] text-[#666666] shrink-0">L{sym.lines}</span>
                     </div>
                   ))}
                 </div>
@@ -221,12 +221,12 @@ CREATE TABLE users (
                 {/* Relationships */}
                 <div className="mt-4 pt-3 border-t border-white/[0.08]">
                   <div className="text-[11px] font-bold text-white mb-2 flex items-center gap-1.5 font-pixel">
-                    <Database className="w-3.5 h-3.5" />
-                    Relational Graph Edges:
+                    <Database className="w-3.5 h-3.5 shrink-0" />
+                    <span>Relational Graph Edges:</span>
                   </div>
-                  <div className="space-y-1 text-[11px] text-[#888888]">
+                  <div className="space-y-1 text-[10px] sm:text-[11px] text-[#888888]">
                     {snippets[selectedLang].relations.map((rel, idx) => (
-                      <div key={idx} className="p-2 rounded bg-[#0A0A0A] border border-white/5">
+                      <div key={idx} className="p-2 rounded bg-[#0A0A0A] border border-white/5 break-words">
                         {rel}
                       </div>
                     ))}
@@ -234,7 +234,7 @@ CREATE TABLE users (
                 </div>
               </div>
 
-              <div className="text-[10px] text-white bg-white/5 p-3 rounded border border-white/10">
+              <div className="text-[10px] text-white bg-white/5 p-2.5 sm:p-3 rounded border border-white/10 mt-4">
                 ⚡ Partitioned into logical AST chunks with language-aware comment headers
               </div>
             </div>
