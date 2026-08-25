@@ -17,6 +17,67 @@ export const HeroCockpit: React.FC = () => {
     { time: '21:33:10', file: 'src/core/scanner/filters.ts', delta: 'Cache hash updated [a8f1..]', status: 'SYNCD (22ms)' }
   ]);
 
+  // Authentic CLI Terminal Typewriter & Continuous Looping Cycle
+  const [typedChars, setTypedChars] = useState(0);
+  const [isKReversed, setIsKReversed] = useState(false);
+  const fullBrandText = 'Kodast.';
+
+  useEffect(() => {
+    let isMounted = true;
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const runTerminalCycle = async () => {
+      while (isMounted) {
+        // 1. Reset state to blank prompt
+        setIsKReversed(false);
+        setTypedChars(0);
+        await sleep(180);
+        if (!isMounted) break;
+
+        // 2. Type forward deliberately (~110ms per character)
+        for (let i = 1; i <= fullBrandText.length; i++) {
+          if (!isMounted) break;
+          setTypedChars(i);
+          await sleep(110);
+        }
+        if (!isMounted) break;
+
+        // 3. Pause for 650ms to let user read the standard name
+        await sleep(650);
+        if (!isMounted) break;
+
+        // 4. Smoothly 3D-rotate the 'K' into the signature reversed mark
+        setIsKReversed(true);
+
+        // 5. Hold the completed signature brand with pulsing cursor for 2.2 seconds
+        await sleep(2200);
+        if (!isMounted) break;
+
+        // 6. Flip K back to normal before backspacing
+        setIsKReversed(false);
+        await sleep(250);
+        if (!isMounted) break;
+
+        // 7. Fast backspace delete characters in reverse (~35ms per character)
+        for (let i = fullBrandText.length - 1; i >= 0; i--) {
+          if (!isMounted) break;
+          setTypedChars(i);
+          await sleep(35);
+        }
+        if (!isMounted) break;
+
+        // 8. Snappy rest at blank prompt before repeating cycle
+        await sleep(250);
+      }
+    };
+
+    runTerminalCycle();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const installCommands = {
     npm: 'npm install -g @pra9v/kodast',
     npx: 'npx @pra9v/kodast',
@@ -184,14 +245,50 @@ export const HeroCockpit: React.FC = () => {
           </div>
 
           {/* Floating Pill Tag */}
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded bg-[#111111] border border-white/20 text-[10px] sm:text-[11px] font-mono text-white mb-4 sm:mb-6 max-w-full truncate">
-            <span className="text-[9px] sm:text-[10px] bg-white text-black font-bold px-1.5 py-0.2 rounded shrink-0">New</span>
-            <span className="truncate">Kodast v0.3.0 Neural Engine</span>
+          <div>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded bg-[#111111] border border-white/20 text-[10px] sm:text-[11px] font-mono text-white mb-4 sm:mb-6 max-w-full truncate">
+              <span className="text-[9px] sm:text-[10px] bg-white text-black font-bold px-1.5 py-0.2 rounded shrink-0">New</span>
+              <span className="truncate">Kodast v0.3.0 Neural Engine</span>
+            </div>
           </div>
 
-          {/* Giant Geist Pixel Wordmark (Responsive Scaling with Reversed K) */}
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-pixel tracking-tight text-white mb-3 sm:mb-4 select-none break-words">
-            <span className="inline-block scale-x-[-1] origin-center mr-[0.02em]">K</span>odast.
+          {/* Giant Geist Pixel Wordmark (Authentic CLI Typewriter + Seamless 3D K-Inversion) */}
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-pixel tracking-tight text-white mb-3 sm:mb-4 select-none break-words min-h-[1.15em] flex items-center leading-none">
+            {/* The Letter 'K' (only rendered when typedChars >= 1 so cursor starts at true index 0) */}
+            {typedChars >= 1 && (
+              <span
+                className="inline-block relative"
+                style={{ perspective: '800px' }}
+              >
+                <span
+                  className="inline-block transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={{
+                    transform: isKReversed ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transformOrigin: 'center center'
+                  }}
+                >
+                  K
+                </span>
+              </span>
+            )}
+
+            {/* Remaining word 'odast.' */}
+            {typedChars > 1 && (
+              <span>
+                {fullBrandText.slice(1, typedChars)}
+              </span>
+            )}
+
+            {/* Authentic Terminal Underscore Cursor (Binary 100% On/Off Step Blink) */}
+            <span
+              className={`inline-block select-none ${
+                typedChars < fullBrandText.length
+                  ? 'opacity-100'
+                  : 'animate-terminal-blink'
+              }`}
+            >
+              _
+            </span>
           </h1>
 
           <p className="text-sm sm:text-base lg:text-lg text-[#888888] max-w-2xl font-mono leading-relaxed mb-6 sm:mb-8">
