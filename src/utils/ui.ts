@@ -49,14 +49,8 @@ export class TerminalUI {
   ): void {
     console.clear();
 
-    const coral = chalk.hex("#FF5370");
-    const amber = chalk.hex("#FFCB6B");
-    const emerald = chalk.hex("#C3E88D");
-    const cyan = chalk.hex("#89DDFF");
-    const blue = chalk.hex("#82AAFF");
-    const purple = chalk.hex("#C792EA");
-
-    const title = chalk.hex("#82AAFF").bold;
+    const white = chalk.white.bold;
+    const title = chalk.white.bold;
     const textMain = chalk.hex("#EEFFFF");
     const textMuted = chalk.hex("#676E95");
     const rule = chalk.hex("#3B4261");
@@ -64,11 +58,11 @@ export class TerminalUI {
     const gitBranch = this.getGitBranch(projectRoot);
     const branchInfo = gitBranch ? ` (${gitBranch})` : "";
     console.log();
-    // 4-row pixel square logo with continuous diagonal cascade gradient
-    console.log(`  ${coral("▄▄")}${amber("▄▄")}      ${title("Codast CLI 0.2.0")}`);
-    console.log(`  ${amber("██")}${emerald("██")}      ${textMuted(`Local Code Intelligence & REPL`)}`);
-    console.log(`  ${emerald("██")}${cyan("██")}      ${textMain(`Neural AST & Semantic Index Active`)}`);
-    console.log(`  ${cyan("▀▀")}${purple("▀▀")}      ${textMuted(`${projectRoot}${branchInfo}`)}`);
+    // The Definitive Terminal Cursor & Chevron Logo
+    console.log(`  ${white("█▄       ████")}    ${title("Codast CLI 0.2.0")}`);
+    console.log(`    ${white("▀█▄    ████")}    ${textMuted("Local Code Intelligence & REPL")}`);
+    console.log(`    ${white("▄█▀        ")}    ${textMain("Neural AST & Semantic Index Active")}`);
+    console.log(`  ${white("█▀       ▄▄▄▄")}    ${textMuted(`${projectRoot}${branchInfo}`)}`);
     console.log(`  ${rule("─────────────────────────────────────────────────────────────────────────────")}`);
     console.log();
   }

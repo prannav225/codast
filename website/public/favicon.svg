@@ -1,21 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <!-- Terminal Dark Background Container -->
-  <rect width="512" height="512" rx="96" fill="#0D1117" />
-  <rect width="512" height="512" rx="96" fill="none" stroke="#21262D" stroke-width="3"/>
+  <rect width="512" height="512" rx="112" fill="#000000" />
+  <rect width="512" height="512" rx="112" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="12"/>
 
-  <!-- Row 1: Top Cap (Coral | Amber) -->
-  <rect x="86" y="53" width="170" height="56" fill="#FF5370" />
-  <rect x="256" y="53" width="170" height="56" fill="#FFCB6B" />
+  <!-- Exact Pixel Grid Chevron '>' -->
+  <!-- Row 1: █▄ -->
+  <rect x="52" y="112" width="36" height="72" fill="#FFFFFF" />
+  <rect x="88" y="148" width="36" height="36" fill="#FFFFFF" />
 
-  <!-- Row 2: Upper Block (Amber | Emerald) -->
-  <rect x="86" y="115" width="170" height="138" fill="#FFCB6B" />
-  <rect x="256" y="115" width="170" height="138" fill="#C3E88D" />
+  <!-- Row 2: ▀█▄ -->
+  <rect x="124" y="184" width="36" height="36" fill="#FFFFFF" />
+  <rect x="160" y="184" width="36" height="72" fill="#FFFFFF" />
+  <rect x="192" y="220" width="36" height="36" fill="#FFFFFF" />
 
-  <!-- Row 3: Lower Block (Emerald | Cyan) -->
-  <rect x="86" y="259" width="170" height="138" fill="#C3E88D" />
-  <rect x="256" y="259" width="170" height="138" fill="#89DDFF" />
+  <!-- Row 3: ▄█▀ -->
+  <rect x="192" y="256" width="36" height="36" fill="#FFFFFF" />
+  <rect x="160" y="256" width="36" height="72" fill="#FFFFFF" />
+  <rect x="124" y="292" width="36" height="36" fill="#FFFFFF" />
 
-  <!-- Row 4: Bottom Cap (Cyan | Purple) -->
-  <rect x="86" y="403" width="170" height="56" fill="#89DDFF" />
-  <rect x="256" y="403" width="170" height="56" fill="#C792EA" />
+  <!-- Row 4: █▀ -->
+  <rect x="88" y="328" width="36" height="36" fill="#FFFFFF" />
+  <rect x="52" y="328" width="36" height="72" fill="#FFFFFF" />
+
+  <!-- Upper Solid Block Cursor '████' (Rows 1 & 2) -->
+  <rect x="332" y="112" width="144" height="144" fill="#FFFFFF" />
+
+  <!-- Lower Underscore Cursor '▄▄▄▄' (Row 4) -->
+  <rect x="332" y="364" width="144" height="36" fill="#FFFFFF" />
 </svg>
