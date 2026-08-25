@@ -17,7 +17,7 @@ export class NoProjectDetectedError extends CodebaseAIError {
 export class NotInitializedError extends CodebaseAIError {
   constructor() {
     super(
-      "Codebase AI has not been initialized in this project.\nRun: codebase-ai init",
+      "Kodast has not been initialized in this project.\nRun: kodast init",
       "NOT_INITIALIZED"
     );
   }
@@ -26,7 +26,7 @@ export class NotInitializedError extends CodebaseAIError {
 export class NotIndexedError extends CodebaseAIError {
   constructor() {
     super(
-      "No codebase index found.\nRun: codebase-ai index",
+      "No codebase index found.\nRun: kodast index",
       "NOT_INDEXED"
     );
   }
@@ -35,7 +35,7 @@ export class NotIndexedError extends CodebaseAIError {
 export class MissingApiKeyError extends CodebaseAIError {
   constructor() {
     super(
-      "Gemini API key is not configured.\nProvide it via environment variable (GEMINI_API_KEY) or run:\n  codebase-ai config set api-key <YOUR_API_KEY>",
+      "Gemini API key is not configured.\nProvide it via environment variable (GEMINI_API_KEY) or run:\n  kodast config set api-key <YOUR_API_KEY>",
       "MISSING_API_KEY"
     );
   }

@@ -86,7 +86,7 @@ impl Session {
             Native Support for Your Entire Stack.
           </h2>
           <p className="text-[#A6ACCD] text-base sm:text-lg leading-relaxed">
-            Codast extracts deep AST semantics, receiver methods, annotations, and relationships across any modern programming language.
+            Kodast extracts deep AST semantics, receiver methods, annotations, and relationships across any modern programming language.
           </p>
         </div>
 

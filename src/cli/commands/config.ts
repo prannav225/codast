@@ -43,7 +43,7 @@ export async function configCommand(
 
     if (action === "get") {
       if (!key) {
-        Logger.error("Please specify a key to get. Example: codebase-ai config get voyage-key");
+        Logger.error("Please specify a key to get. Example: kodast config get voyage-key");
         process.exitCode = 1;
         return;
       }
@@ -70,7 +70,7 @@ export async function configCommand(
 
     if (action === "set") {
       if (!key || value === undefined) {
-        Logger.error("Please specify key and value. Example: codebase-ai config set voyage-key <KEY>");
+        Logger.error("Please specify key and value. Example: kodast config set voyage-key <KEY>");
         process.exitCode = 1;
         return;
       }

@@ -1,7 +1,7 @@
-# Codast (`codast` / `cai`)
+# Kodast (`kodast` / `cai`)
 
 <p align="center">
-  <img src="assets/codast-icon.svg" alt="Codast Logo" width="120" height="120" />
+  <img src="assets/codast-logo.svg" alt="Kodast Logo" width="120" height="120" />
 </p>
 
 <p align="center">
@@ -16,22 +16,22 @@
 ### 1. Install Globally
 
 ```bash
-npm install -g @pra9v/codast
+npm install -g @pra9v/kodast
 ```
 
-*(Alternatively, run instantly without installing via `npx @pra9v/codast`)*
+*(Alternatively, run instantly without installing via `npx @pra9v/kodast`)*
 
 ### 2. Configure (Only 1 API Key Needed)
 
-Codast works out of the box with a single free **Google Gemini API key** for both reasoning and embeddings:
+Kodast works out of the box with a single free **Google Gemini API key** for both reasoning and embeddings:
 
 ```bash
-codast config set api-key <YOUR_GEMINI_API_KEY>
+kodast config set api-key <YOUR_GEMINI_API_KEY>
 ```
 
 > **Prefer 100% offline with zero keys?** Run with local Ollama:
 > ```bash
-> codast config set provider ollama
+> kodast config set provider ollama
 > ```
 
 ### 3. Launch the REPL
@@ -39,7 +39,7 @@ codast config set api-key <YOUR_GEMINI_API_KEY>
 Navigate to any codebase directory and start chatting:
 
 ```bash
-codast
+kodast
 # or
 cai
 ```
@@ -48,18 +48,18 @@ cai
 
 ## ⚙️ Configuration Modes
 
-Codast stores credentials globally in `~/.codebase-ai/config.json` so you configure once for all repositories:
+Kodast stores credentials globally in `~/.codebase-ai/config.json` so you configure once for all repositories:
 
 | Mode | Setup Command | Keys Needed | Description |
 | :--- | :--- | :---: | :--- |
-| **Google Gemini (Default)** | `codast config set api-key <KEY>` | **1 Key** | Uses Gemini for both chat reasoning and code embeddings. Free tier friendly. |
-| **100% Offline (Ollama)** | `codast config set provider ollama` | **0 Keys** | Completely private and local via `qwen2.5-coder` + `nomic-embed-text`. |
-| **Hybrid (Voyage AI + Gemini)** | `codast config set voyage-key <KEY>` | **2 Keys** | Uses specialized `voyage-code-2` for code embeddings with Gemini reasoning. |
+| **Google Gemini (Default)** | `kodast config set api-key <KEY>` | **1 Key** | Uses Gemini for both chat reasoning and code embeddings. Free tier friendly. |
+| **100% Offline (Ollama)** | `kodast config set provider ollama` | **0 Keys** | Completely private and local via `qwen2.5-coder` + `nomic-embed-text`. |
+| **Hybrid (Voyage AI + Gemini)** | `kodast config set voyage-key <KEY>` | **2 Keys** | Uses specialized `voyage-code-2` for code embeddings with Gemini reasoning. |
 
 ### View Active Configuration
 
 ```bash
-codast config show
+kodast config show
 ```
 
 ---
@@ -105,22 +105,22 @@ When the REPL is open, a silent background file watcher monitors your workspace.
 
 ```bash
 # Start interactive REPL
-codast
+kodast
 
 # Run a one-off query from terminal
-codast ask "How does user authentication work?"
+kodast ask "How does user authentication work?"
 
 # Generate architecture or sequence diagrams
-codast diagram [target] [--type architecture|sequence] [--ascii]
+kodast diagram [target] [--type architecture|sequence] [--ascii]
 
 # Real-time standalone filesystem watcher
-codast watch
+kodast watch
 
 # Force re-index codebase
-codast index --force
+kodast index --force
 
 # View repository index statistics
-codast status
+kodast status
 ```
 
 ---
@@ -142,7 +142,7 @@ codast status
 
 ## 🧪 Testing
 
-Codast includes 11 automated test suites covering all core subsystems:
+Kodast includes 11 automated test suites covering all core subsystems:
 
 ```bash
 npm test

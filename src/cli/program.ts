@@ -13,9 +13,9 @@ export function createProgram(): Command {
   const program = new Command();
 
   program
-    .name("codast")
+    .name("kodast")
     .description("Local-first AI-powered codebase intelligence CLI & REPL")
-    .version("0.2.0")
+    .version("0.3.0")
     .option("-v, --verbose", "enable verbose logging", () => {
       Logger.setVerbose(true);
     })

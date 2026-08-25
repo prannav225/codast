@@ -53,7 +53,7 @@ export async function indexCommand(options: { force?: boolean; verbose?: boolean
     console.log(`  ${chalk.green("✔")} Duration:                    ${chalk.bold((result.durationMs / 1000).toFixed(2))}s`);
     console.log();
     Logger.success("Codebase index is ready for questions!");
-    console.log(`\nTry asking: ${chalk.cyan("codebase-ai ask \"Explain the project structure\"")}\n`);
+    console.log(`\nTry asking: ${chalk.cyan("kodast ask \"Explain the project structure\"")}\n`);
   } catch (error: any) {
     spinner.fail(chalk.red("Indexing failed"));
     if (error instanceof MissingApiKeyError) {

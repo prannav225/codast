@@ -59,7 +59,7 @@ export class TerminalUI {
     const branchInfo = gitBranch ? ` (${gitBranch})` : "";
     console.log();
     // The Definitive Terminal Cursor & Chevron Logo
-    console.log(`  ${white("█▄       ████")}    ${title("Codast CLI 0.2.0")}`);
+    console.log(`  ${white("█▄       ████")}    ${title("Kodast CLI 0.3.0")}`);
     console.log(`    ${white("▀█▄    ████")}    ${textMuted("Local Code Intelligence & REPL")}`);
     console.log(`    ${white("▄█▀        ")}    ${textMain("Neural AST & Semantic Index Active")}`);
     console.log(`  ${white("█▀       ▄▄▄▄")}    ${textMuted(`${projectRoot}${branchInfo}`)}`);
@@ -133,7 +133,7 @@ export class TerminalUI {
   /**
    * Renders the bottom Antigravity status bar.
    */
-  static renderBottomBar(status: string = "codast • ready"): void {
+  static renderBottomBar(status: string = "kodast • ready"): void {
     const rule = chalk.hex("#3B4261");
     const left = chalk.hex("#676E95")("? for shortcuts");
     const right = chalk.hex("#676E95")(status);

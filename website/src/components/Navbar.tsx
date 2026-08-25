@@ -9,7 +9,7 @@ export const Navbar: React.FC = () => {
   );
 
   const copyCommand = () => {
-    navigator.clipboard.writeText("npm install -g @pra9v/codast");
+    navigator.clipboard.writeText("npm install -g @pra9v/kodast");
     setCopied(true);
     confetti({
       particleCount: 35,
@@ -27,11 +27,11 @@ export const Navbar: React.FC = () => {
           <a
             href="/"
             className="flex items-center justify-center"
-            title="Codast"
+            title="Kodast"
           >
             <img
               src="/codast-logo.svg"
-              alt="Codast Logo"
+              alt="Kodast Logo"
               className="w-5 h-5 sm:w-5.5 sm:h-5.5 object-contain"
             />
           </a>

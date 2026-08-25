@@ -39,7 +39,7 @@ export const SetupMatrix: React.FC = () => {
               Setup.
             </h2>
             <p className="text-xs sm:text-sm lg:text-base text-[#888888] leading-relaxed">
-              Configure once in <code className="text-white bg-white/10 px-1 py-0.5 rounded">~/.codebase-ai/config.json</code>. Codast automatically detects your repository and runs seamlessly.
+              Configure once in <code className="text-white bg-white/10 px-1 py-0.5 rounded">~/.codebase-ai/config.json</code>. Kodast automatically detects your repository and runs seamlessly.
             </p>
           </div>
 
@@ -103,9 +103,9 @@ export const SetupMatrix: React.FC = () => {
                 </div>
 
                 <div className="p-3 sm:p-3.5 bg-[#000000] rounded-xl border border-white/10 flex items-center justify-between gap-2">
-                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ codast config set api-key &lt;YOUR_GEMINI_KEY&gt;</span>
+                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ kodast config set api-key &lt;YOUR_GEMINI_KEY&gt;</span>
                   <button
-                    onClick={() => copyToClipboard('codast config set api-key <YOUR_GEMINI_KEY>', 'gem1')}
+                    onClick={() => copyToClipboard('kodast config set api-key <YOUR_GEMINI_KEY>', 'gem1')}
                     className="p-1.5 rounded bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-white shrink-0"
                     title="Copy command"
                   >
@@ -114,9 +114,9 @@ export const SetupMatrix: React.FC = () => {
                 </div>
 
                 <div className="p-3 sm:p-3.5 bg-[#000000] rounded-xl border border-white/10 flex items-center justify-between gap-2">
-                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ codast</span>
+                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ kodast</span>
                   <button
-                    onClick={() => copyToClipboard('codast', 'gem2')}
+                    onClick={() => copyToClipboard('kodast', 'gem2')}
                     className="p-1.5 rounded bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-white shrink-0"
                     title="Copy command"
                   >
@@ -134,9 +134,9 @@ export const SetupMatrix: React.FC = () => {
                 </div>
 
                 <div className="p-3 sm:p-3.5 bg-[#000000] rounded-xl border border-white/10 flex items-center justify-between gap-2">
-                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ codast config set provider ollama</span>
+                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ kodast config set provider ollama</span>
                   <button
-                    onClick={() => copyToClipboard('codast config set provider ollama', 'ol1')}
+                    onClick={() => copyToClipboard('kodast config set provider ollama', 'ol1')}
                     className="p-1.5 rounded bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-white shrink-0"
                     title="Copy command"
                   >
@@ -145,9 +145,9 @@ export const SetupMatrix: React.FC = () => {
                 </div>
 
                 <div className="p-3 sm:p-3.5 bg-[#000000] rounded-xl border border-white/10 flex items-center justify-between gap-2">
-                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ codast</span>
+                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ kodast</span>
                   <button
-                    onClick={() => copyToClipboard('codast', 'ol2')}
+                    onClick={() => copyToClipboard('kodast', 'ol2')}
                     className="p-1.5 rounded bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-white shrink-0"
                     title="Copy command"
                   >
@@ -165,9 +165,9 @@ export const SetupMatrix: React.FC = () => {
                 </div>
 
                 <div className="p-3 sm:p-3.5 bg-[#000000] rounded-xl border border-white/10 flex items-center justify-between gap-2">
-                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ codast config set voyage-key &lt;VOYAGE_KEY&gt;</span>
+                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ kodast config set voyage-key &lt;VOYAGE_KEY&gt;</span>
                   <button
-                    onClick={() => copyToClipboard('codast config set voyage-key <VOYAGE_KEY>', 'voy1')}
+                    onClick={() => copyToClipboard('kodast config set voyage-key <VOYAGE_KEY>', 'voy1')}
                     className="p-1.5 rounded bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-white shrink-0"
                     title="Copy command"
                   >
@@ -176,9 +176,9 @@ export const SetupMatrix: React.FC = () => {
                 </div>
 
                 <div className="p-3 sm:p-3.5 bg-[#000000] rounded-xl border border-white/10 flex items-center justify-between gap-2">
-                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ codast config set api-key &lt;GEMINI_KEY&gt;</span>
+                  <span className="text-white truncate font-mono text-[11px] sm:text-xs">$ kodast config set api-key &lt;GEMINI_KEY&gt;</span>
                   <button
-                    onClick={() => copyToClipboard('codast config set api-key <GEMINI_KEY>', 'voy2')}
+                    onClick={() => copyToClipboard('kodast config set api-key <GEMINI_KEY>', 'voy2')}
                     className="p-1.5 rounded bg-[#161616] hover:bg-[#222222] text-[#888888] hover:text-white shrink-0"
                     title="Copy command"
                   >

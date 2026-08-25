@@ -9,11 +9,13 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-3">
             <img
               src="/codast-logo.svg"
-              alt="Codast Logo"
+              alt="Kodast Logo"
               className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
             />
             <div className="text-left">
-              <span className="text-white font-bold font-pixel text-sm">CODAST</span>
+              <span className="text-white font-bold font-pixel text-sm">
+                <span className="inline-block scale-x-[-1] origin-center mr-[0.02em]">K</span>ODAST
+              </span>
               <div className="text-[10px] text-[#555555]">Local Code Intelligence &amp; Neural AST</div>
             </div>
           </div>
@@ -23,10 +25,10 @@ export const Footer: React.FC = () => {
             <a href="#bento" className="hover:text-white transition-colors">Superpowers</a>
             <a href="#polyglot-lab" className="hover:text-white transition-colors">AST Lab</a>
             <a href="#setup" className="hover:text-white transition-colors">Setup</a>
-            <a href="https://github.com/prannav225/codast" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+            <a href="https://github.com/prannav225/kodast" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
               GitHub <ExternalLink className="w-3 h-3" />
             </a>
-            <a href="https://www.npmjs.com/package/@pra9v/codast" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+            <a href="https://www.npmjs.com/package/@pra9v/kodast" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
               NPM <ExternalLink className="w-3 h-3" />
             </a>
           </div>

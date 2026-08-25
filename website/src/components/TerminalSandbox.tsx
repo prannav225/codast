@@ -215,7 +215,7 @@ export const TerminalSandbox: React.FC = () => {
           <div className="w-3 h-3 rounded-full bg-[#C3E88D]/80 hover:opacity-100 transition-opacity" />
           <span className="ml-2 text-xs font-mono text-[#676E95] font-medium flex items-center gap-1.5">
             <Terminal className="w-3.5 h-3.5 text-[#82AAFF]" />
-            codast (REPL) • /project (main)
+            Kodast (REPL) • /project (main)
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs font-mono text-[#676E95]">
@@ -251,7 +251,7 @@ export const TerminalSandbox: React.FC = () => {
               </div>
             </div>
             <div>
-              <div className="text-xs font-bold text-[#82AAFF]">Codast CLI 0.2.0</div>
+              <div className="text-xs font-bold text-[#82AAFF]">Kodast CLI 0.3.0</div>
               <div className="text-[11px] text-[#676E95]">Local Code Intelligence &amp; REPL</div>
               <div className="text-[11px] text-[#EEFFFF]">Neural AST &amp; Semantic Index Active</div>
             </div>

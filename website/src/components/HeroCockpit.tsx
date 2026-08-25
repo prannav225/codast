@@ -18,9 +18,9 @@ export const HeroCockpit: React.FC = () => {
   ]);
 
   const installCommands = {
-    npm: 'npm install -g @pra9v/codast',
-    npx: 'npx @pra9v/codast',
-    curl: 'curl -fsSL https://raw.githubusercontent.com/prannav225/codast/main/install.sh | bash'
+    npm: 'npm install -g @pra9v/kodast',
+    npx: 'npx @pra9v/kodast',
+    curl: 'curl -fsSL https://raw.githubusercontent.com/prannav225/kodast/main/install.sh | bash'
   };
 
   const handleCopy = () => {
@@ -186,12 +186,12 @@ export const HeroCockpit: React.FC = () => {
           {/* Floating Pill Tag */}
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded bg-[#111111] border border-white/20 text-[10px] sm:text-[11px] font-mono text-white mb-4 sm:mb-6 max-w-full truncate">
             <span className="text-[9px] sm:text-[10px] bg-white text-black font-bold px-1.5 py-0.2 rounded shrink-0">New</span>
-            <span className="truncate">Codast v0.2.0 Neural Engine</span>
+            <span className="truncate">Kodast v0.3.0 Neural Engine</span>
           </div>
 
-          {/* Giant Geist Pixel Wordmark (Responsive Scaling) */}
+          {/* Giant Geist Pixel Wordmark (Responsive Scaling with Reversed K) */}
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-pixel tracking-tight text-white mb-3 sm:mb-4 select-none break-words">
-            Codast.
+            <span className="inline-block scale-x-[-1] origin-center mr-[0.02em]">K</span>odast.
           </h1>
 
           <p className="text-sm sm:text-base lg:text-lg text-[#888888] max-w-2xl font-mono leading-relaxed mb-6 sm:mb-8">
@@ -255,7 +255,7 @@ export const HeroCockpit: React.FC = () => {
 
             <div className="text-xs text-[#888888] leading-relaxed space-y-2 sm:space-y-3">
               <p>
-                At its core, Codast parses source code into <strong className="text-white">Abstract Syntax Trees</strong> across TypeScript, Go, Rust, and Python without blind vector hallucination.
+                At its core, Kodast parses source code into <strong className="text-white">Abstract Syntax Trees</strong> across TypeScript, Go, Rust, and Python without blind vector hallucination.
               </p>
               <p>
                 Extracts receiver methods, interfaces, and cross-file dependencies into SQLite relational graphs.
@@ -323,7 +323,7 @@ export const HeroCockpit: React.FC = () => {
             </div>
 
             <div className="text-sm sm:text-base text-white leading-relaxed font-pixel">
-              "Codast truly represents local, private codebase intelligence for the modern developer terminal."
+              "Kodast truly represents local, private codebase intelligence for the modern developer terminal."
             </div>
           </div>
 
@@ -339,7 +339,7 @@ export const HeroCockpit: React.FC = () => {
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/20" />
               <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/20" />
               <span className="ml-2 sm:ml-3 text-xs text-[#666666] truncate max-w-[160px] sm:max-w-none">
-                codast (REPL) • /workspace
+                kodast (REPL) • /workspace
               </span>
             </div>
 
@@ -380,7 +380,7 @@ export const HeroCockpit: React.FC = () => {
                     &gt;_
                   </div>
                   <div className="truncate">
-                    <div className="font-bold text-white text-xs sm:text-sm font-pixel truncate">Codast CLI 0.2.0</div>
+                    <div className="font-bold text-white text-xs sm:text-sm font-pixel truncate">Kodast CLI 0.3.0</div>
                     <div className="text-[10px] sm:text-xs text-[#666666] truncate">Neural AST &amp; Semantic Index Active</div>
                   </div>
                 </div>

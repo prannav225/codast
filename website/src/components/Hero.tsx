@@ -8,9 +8,9 @@ export const Hero: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const installCommands = {
-    npm: 'npm install -g @pra9v/codast',
-    npx: 'npx @pra9v/codast',
-    curl: 'curl -fsSL https://raw.githubusercontent.com/prannav225/codast/main/install.sh | bash'
+    npm: 'npm install -g @pra9v/kodast',
+    npx: 'npx @pra9v/kodast',
+    curl: 'curl -fsSL https://raw.githubusercontent.com/prannav225/kodast/main/install.sh | bash'
   };
 
   const handleCopy = () => {

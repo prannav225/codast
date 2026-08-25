@@ -1,11 +1,13 @@
 {
-  "name": "@pra9v/codast",
-  "version": "0.2.0",
+  "name": "@pra9v/kodast",
+  "version": "0.3.0",
   "description": "Local-first AI-powered developer CLI for JavaScript, TypeScript, Python, Go, Rust, Java, and Polyglot codebases",
   "type": "module",
   "bin": {
-    "codast": "bin/codast.js",
-    "cai": "bin/codast.js"
+    "kodast": "bin/kodast.js",
+    "kai": "bin/kai.js",
+    "codast": "bin/kodast.js",
+    "cai": "bin/kai.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,11 +19,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prannav225/codast.git"
+    "url": "git+https://github.com/prannav225/kodast.git"
   },
-  "homepage": "https://github.com/prannav225/codast#readme",
+  "homepage": "https://github.com/prannav225/kodast#readme",
   "bugs": {
-    "url": "https://github.com/prannav225/codast/issues"
+    "url": "https://github.com/prannav225/kodast/issues"
   },
   "scripts": {
     "build": "tsup",

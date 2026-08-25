@@ -16,12 +16,12 @@ export const CommandMatrix: React.FC = () => {
   ];
 
   const cliCommands = [
-    { cmd: 'codast', desc: 'Launch the interactive REPL with live @-autocomplete and background watcher' },
-    { cmd: 'codast ask "<prompt>"', desc: 'Run a one-off grounded intelligence query directly from your bash/zsh shell' },
-    { cmd: 'codast diagram [target]', desc: 'Generate visual architecture diagrams or ASCII call graphs directly in CLI' },
-    { cmd: 'codast watch', desc: 'Run the standalone real-time background filesystem watcher daemon' },
-    { cmd: 'codast index --force', desc: 'Force complete clean re-indexing of all repository files' },
-    { cmd: 'codast status', desc: 'Display global and project-specific index statistics' },
+    { cmd: 'kodast', desc: 'Launch the interactive REPL with live @-autocomplete and background watcher' },
+    { cmd: 'kodast ask "<prompt>"', desc: 'Run a one-off grounded intelligence query directly from your bash/zsh shell' },
+    { cmd: 'kodast diagram [target]', desc: 'Generate visual architecture diagrams or ASCII call graphs directly in CLI' },
+    { cmd: 'kodast watch', desc: 'Run the standalone real-time background filesystem watcher daemon' },
+    { cmd: 'kodast index --force', desc: 'Force complete clean re-indexing of all repository files' },
+    { cmd: 'kodast status', desc: 'Display global and project-specific index statistics' },
   ];
 
   return (

@@ -98,7 +98,7 @@ export const BentoGrid: React.FC = () => {
                   Token Fast-Path.
                 </h3>
                 <p className="text-xs sm:text-sm text-[#888888] leading-relaxed mb-6">
-                  Saying "hey" or "thanks" won't dump 8,000 tokens of random code into context. Codast classifies conversational intent in &lt;1ms.
+                  Saying "hey" or "thanks" won't dump 8,000 tokens of random code into context. Kodast classifies conversational intent in &lt;1ms.
                 </p>
               </div>
 
@@ -116,7 +116,7 @@ export const BentoGrid: React.FC = () => {
 
                 <div className="p-3 sm:p-3.5 bg-[#0A0A0A] rounded-xl border border-white/30 space-y-2">
                   <div className="flex justify-between text-[10px] sm:text-[11px]">
-                    <span className="text-white font-bold">Codast Fast-Path:</span>
+                    <span className="text-white font-bold">Kodast Fast-Path:</span>
                     <span className="text-white font-bold">0 tokens (&lt; 1ms)</span>
                   </div>
                   <div className="w-full h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
@@ -136,7 +136,7 @@ export const BentoGrid: React.FC = () => {
                   Watcher.
                 </h3>
                 <p className="text-xs sm:text-sm text-[#888888] leading-relaxed mb-6">
-                  Edit code in VS Code, Cursor, or Neovim — Codast re-indexes only modified AST nodes on save without pausing your chat.
+                  Edit code in VS Code, Cursor, or Neovim — Kodast re-indexes only modified AST nodes on save without pausing your chat.
                 </p>
               </div>
 

@@ -60,7 +60,7 @@ export const Architecture: React.FC = () => {
             Hybrid Multi-Modal Pipeline.
           </h2>
           <p className="text-[#A6ACCD] text-base sm:text-lg leading-relaxed">
-            Click through the 5 stages of the Codast pipeline to see how raw source code transforms into grounded intelligence.
+            Click through the 5 stages of the Kodast pipeline to see how raw source code transforms into grounded intelligence.
           </p>
         </div>
 

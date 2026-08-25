@@ -23,7 +23,7 @@ export const Features: React.FC = () => {
             Engineered For Deep Codebase Intelligence.
           </h2>
           <p className="text-[#A6ACCD] text-base sm:text-lg leading-relaxed">
-            Forget naive text searching. Codast compiles your codebase into a structured relational knowledge graph and neural vector index.
+            Forget naive text searching. Kodast compiles your codebase into a structured relational knowledge graph and neural vector index.
           </p>
         </div>
 

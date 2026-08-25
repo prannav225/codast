@@ -27,7 +27,7 @@ export async function watchCommand(): Promise<void> {
   const projectName = path.basename(projectRoot);
   console.clear();
   console.log();
-  console.log(`  ${chalk.hex("#82AAFF").bold("◈ Codast Live File Watcher")}`);
+  console.log(`  ${chalk.hex("#82AAFF").bold("◈ Kodast Live File Watcher")}`);
   console.log(`  ${chalk.hex("#676E95")(`Watching ${projectName} (${projectRoot}) for live changes...`)}`);
   console.log(`  ${chalk.hex("#676E95")("Press Ctrl+C to exit.")}\n`);
 

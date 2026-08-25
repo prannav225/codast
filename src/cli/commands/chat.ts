@@ -31,7 +31,7 @@ export async function chatCommand(): Promise<void> {
 
   if (!isOllama && !geminiKey) {
     Logger.error(
-      "Gemini API key is not configured.\nPlease run:\n  codast config set api-key <YOUR_GEMINI_KEY>\nOr switch to local offline Ollama:\n  codast config set provider ollama"
+      "Gemini API key is not configured.\nPlease run:\n  kodast config set api-key <YOUR_GEMINI_KEY>\nOr switch to local offline Ollama:\n  kodast config set provider ollama"
     );
     process.exitCode = 1;
     return;
@@ -251,7 +251,7 @@ export async function chatCommand(): Promise<void> {
       if (lower === "/status" || lower === "/stats") {
         const freshStats = repoManager.getProjectStats(repo.id);
         const rule = chalk.hex("#3B4261");
-        console.log(`\n  ${chalk.hex("#82AAFF").bold("Codast Repository Status:")}`);
+        console.log(`\n  ${chalk.hex("#82AAFF").bold("Kodast Repository Status:")}`);
         console.log(`  ${rule("─────────────────────────────────────────")}`);
         console.log(`  ${chalk.hex("#EEFFFF")("Repository:")}     ${projectName}`);
         console.log(`  ${chalk.hex("#EEFFFF")("Root Path:")}      ${chalk.hex("#676E95")(projectRoot)}`);
@@ -326,7 +326,7 @@ export async function chatCommand(): Promise<void> {
         "thank you": "You're very welcome! Let me know if you need anything else.",
         "thx": "Anytime! Standing by for your next query.",
         "ty": "Anytime! Standing by for your next query.",
-        "who are you": "I am Codast, your local codebase intelligence engine. You can ask me technical questions about your code, trace functions, use @file or @symbol mentions, or run /diagram and /tree.",
+        "who are you": "I am Kodast, your local codebase intelligence engine. You can ask me technical questions about your code, trace functions, use @file or @symbol mentions, or run /diagram and /tree.",
         "what can you do": "I can analyze your codebase with AST parsing, trace call flows, resolve @file/@symbol mentions, generate architecture diagrams (/diagram), display project trees (/tree), and answer complex technical questions.",
         "cool": "Standing by for your next query!",
         "nice": "Standing by for your next query!",

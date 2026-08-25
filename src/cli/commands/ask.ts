@@ -48,7 +48,7 @@ export async function askCommand(question: string, options: { verbose?: boolean 
   const stats = repoManager.getProjectStats(repo.id);
 
   if (repo.status !== "INDEXED" || stats.chunkCount === 0) {
-    Logger.error("This repository has not been indexed yet.\nPlease run:\n  codast index --force");
+    Logger.error("This repository has not been indexed yet.\nPlease run:\n  kodast index --force");
     process.exitCode = 1;
     return;
   }

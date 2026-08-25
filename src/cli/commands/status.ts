@@ -13,10 +13,10 @@ export async function statusCommand(): Promise<void> {
     const projectName = path.basename(projectRoot);
 
     if (!ConfigManager.isInitialized(projectRoot)) {
-      Logger.heading("Codebase AI Status");
+      Logger.heading("Kodast Status");
       Logger.warn(`Project: ${chalk.bold(projectName)} (${projectRoot})`);
       Logger.warn("Status: Not initialized");
-      console.log(`\nRun ${chalk.cyan("codebase-ai init")} to initialize.`);
+      console.log(`\nRun ${chalk.cyan("kodast init")} to initialize.`);
       return;
     }
 
@@ -72,11 +72,11 @@ export async function statusCommand(): Promise<void> {
       ? chalk.green(`Configured (${voyageKey.slice(0, 4)}...${voyageKey.slice(-4)})`)
       : chalk.yellow("Not configured");
 
-    Logger.heading("Codebase AI Status");
+    Logger.heading("Kodast Status");
     console.log(`  ${chalk.bold("Repository:")}        ${chalk.cyan(projectName)}`);
     console.log(`  ${chalk.bold("Root Path:")}         ${chalk.dim(projectRoot)}`);
     console.log(`  ${chalk.bold("Initialized:")}       ${chalk.green("Yes")}`);
-    console.log(`  ${chalk.bold("Indexed:")}           ${isIndexed ? chalk.green("Yes") : chalk.yellow("No (run 'codebase-ai index')")}`);
+    console.log(`  ${chalk.bold("Indexed:")}           ${isIndexed ? chalk.green("Yes") : chalk.yellow("No (run 'kodast index')")}`);
     if (lastIndexedAt) {
       console.log(`  ${chalk.bold("Last Indexed:")}      ${chalk.dim(new Date(lastIndexedAt).toLocaleString())}`);
     }

@@ -19,7 +19,7 @@ export class VoyageProvider implements EmbeddingProvider {
     const key = apiKey || process.env.VOYAGE_API_KEY;
     if (!key || key.trim().length === 0) {
       throw new CodebaseAIError(
-        "Voyage API key is not configured.\nSet it via VOYAGE_API_KEY env or run:\n  codebase-ai config set voyage-key <KEY>",
+        "Voyage API key is not configured.\nSet it via VOYAGE_API_KEY env or run:\n  kodast config set voyage-key <KEY>",
         "MISSING_VOYAGE_KEY"
       );
     }
