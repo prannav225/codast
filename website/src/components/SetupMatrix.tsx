@@ -33,13 +33,13 @@ export const SetupMatrix: React.FC = () => {
           {/* Section Header */}
           <div className="max-w-3xl mb-8 sm:mb-10">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#111111] text-[10px] sm:text-[11px] text-[#888888] border border-white/10 mb-3 sm:mb-4">
-              <span>04 // CONFIGURATION MATRIX</span>
+              <span>04 // QUICK SETUP</span>
             </div>
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-pixel tracking-tight text-white mb-3 sm:mb-4">
-              Setup.
+              Up and running in seconds.
             </h2>
             <p className="text-xs sm:text-sm lg:text-base text-[#888888] leading-relaxed">
-              Configure once in <code className="text-white bg-white/10 px-1 py-0.5 rounded">~/.codebase-ai/config.json</code>. Kodast automatically detects your repository and runs seamlessly.
+              Configure once globally on your computer. Kodast automatically detects any codebase you navigate to and starts answering immediately.
             </p>
           </div>
 

@@ -43,10 +43,10 @@ export const CommandMatrix: React.FC = () => {
               <span>05 // COMMAND REFERENCE</span>
             </div>
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-pixel text-white mb-3 sm:mb-4">
-              Commands.
+              Simple, powerful commands.
             </h2>
             <p className="text-xs sm:text-sm lg:text-base text-[#888888] leading-relaxed">
-              Execute commands seamlessly inside the interactive REPL or directly from your terminal shell.
+              Chat interactively with your codebase in the REPL or run fast one-off queries straight from your shell.
             </p>
           </div>
 

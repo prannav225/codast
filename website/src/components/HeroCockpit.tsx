@@ -292,7 +292,7 @@ export const HeroCockpit: React.FC = () => {
           </h1>
 
           <p className="text-sm sm:text-base lg:text-lg text-[#888888] max-w-2xl font-mono leading-relaxed mb-6 sm:mb-8">
-            The neural codebase intelligence engine for your terminal. Polyglot AST graphs, sub-30ms local watcher, and grounded line citations.
+            Your codebase has thousands of lines. <strong className="text-white font-normal">Kodast</strong> is the local CLI assistant that actually understands how it all connects — right inside your terminal.
           </p>
 
           {/* 1-Click Install Bar */}
@@ -330,7 +330,7 @@ export const HeroCockpit: React.FC = () => {
         {/* 3-Column Specimen Architecture Grid (Direct Vercel Format) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 border-t border-b border-white/[0.15] divide-y lg:divide-y-0 lg:divide-x divide-white/[0.15] text-left font-mono mb-12 sm:mb-16">
           
-          {/* Column 1: AST Extraction */}
+          {/* Column 1: Real Code Understanding */}
           <div className="p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6 sm:space-y-12">
             <div>
               <div className="w-8 h-8 rounded border border-white/20 flex items-center justify-center text-xs mb-4 sm:mb-6 text-white">
@@ -346,21 +346,21 @@ export const HeroCockpit: React.FC = () => {
               </div>
 
               <div className="text-xs text-[#888888] uppercase tracking-wider text-center mb-4 sm:mb-6">
-                AST Graph Extraction
+                Code-Aware Intelligence
               </div>
             </div>
 
             <div className="text-xs text-[#888888] leading-relaxed space-y-2 sm:space-y-3">
               <p>
-                At its core, Kodast parses source code into <strong className="text-white">Abstract Syntax Trees</strong> across TypeScript, Go, Rust, and Python without blind vector hallucination.
+                Instead of dumb text search, Kodast reads your code like a senior developer — mapping out every <strong className="text-white font-normal">function, class, and import</strong> across your project.
               </p>
               <p>
-                Extracts receiver methods, interfaces, and cross-file dependencies into SQLite relational graphs.
+                Instantly see which files call each other and understand complex flows before you change anything.
               </p>
             </div>
           </div>
 
-          {/* Column 2: Stats & Key Metrics */}
+          {/* Column 2: Exact Line Numbers & Citations */}
           <div className="p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6 sm:space-y-12">
             <div>
               <div className="w-8 h-8 rounded border border-white/20 flex items-center justify-center text-xs mb-4 sm:mb-6 text-white">
@@ -370,36 +370,36 @@ export const HeroCockpit: React.FC = () => {
               {/* Specimen Metrics Table */}
               <div className="space-y-3 sm:space-y-4 py-2 sm:py-4 text-xs sm:text-sm">
                 <div className="flex justify-between pb-2 border-b border-white/10">
-                  <span className="text-[#888888]">Languages</span>
-                  <span className="text-white font-bold">6 Polyglot ASTs</span>
+                  <span className="text-[#888888]">Setup</span>
+                  <span className="text-white font-bold">1 Command</span>
                 </div>
                 <div className="flex justify-between pb-2 border-b border-white/10">
-                  <span className="text-[#888888]">AST Watcher</span>
-                  <span className="text-white font-bold">&lt; 30ms Incremental</span>
+                  <span className="text-[#888888]">File Watcher</span>
+                  <span className="text-white font-bold">&lt; 30ms on save</span>
                 </div>
                 <div className="flex justify-between pb-2 border-b border-white/10">
-                  <span className="text-[#888888]">Data Egress</span>
-                  <span className="text-white font-bold">0 Packets (Ollama)</span>
+                  <span className="text-[#888888]">Privacy</span>
+                  <span className="text-white font-bold">100% Local (0 leaks)</span>
                 </div>
                 <div className="flex justify-between pb-2 border-b border-white/10">
-                  <span className="text-[#888888]">Citations</span>
-                  <span className="text-white font-bold">100% Exact Lines</span>
+                  <span className="text-[#888888]">Answers</span>
+                  <span className="text-white font-bold">Exact Line Citations</span>
                 </div>
               </div>
 
               <div className="text-xs text-[#888888] uppercase tracking-wider text-center mt-4 sm:mt-6">
-                Neural Performance
+                Verified Accuracy
               </div>
             </div>
 
             <div className="text-xs text-[#888888] leading-relaxed">
               <p>
-                Engineered with <strong className="text-white">LanceDB vector storage</strong> and SQLite metadata persistence for sub-millisecond local retrieval.
+                Every answer points to <strong className="text-white font-normal">real file paths and exact line numbers</strong> in your repository. No guessing, no made-up code.
               </p>
             </div>
           </div>
 
-          {/* Column 3: The Statement Quote */}
+          {/* Column 3: In Your Terminal */}
           <div className="p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6 sm:space-y-12">
             <div>
               <div className="w-8 h-8 rounded border border-white/20 flex items-center justify-center text-xs mb-4 sm:mb-6 text-white">
@@ -415,12 +415,12 @@ export const HeroCockpit: React.FC = () => {
               </div>
 
               <div className="text-xs text-[#888888] uppercase tracking-wider text-center mb-4 sm:mb-6">
-                Grounded REPL Cockpit
+                Terminal Native
               </div>
             </div>
 
             <div className="text-sm sm:text-base text-white leading-relaxed font-pixel">
-              "Kodast truly represents local, private codebase intelligence for the modern developer terminal."
+              "Never leave your terminal. Ask anything about your codebase, trace functions, and generate instant architecture diagrams."
             </div>
           </div>
 
